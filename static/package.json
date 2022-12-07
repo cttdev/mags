@@ -1,0 +1,23 @@
+{
+  "name": "mags",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cttdev/mags.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cttdev/mags/issues"
+  },
+  "homepage": "https://github.com/cttdev/mags#readme",
+  "devDependencies": {
+    "@chrisoakman/chessboardjs": "^1.0.0",
+    "chess.js": "^1.0.0-alpha.0"
+  }
+}
