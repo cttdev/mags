@@ -1,3 +1,18 @@
+$white: #F5FBEF !default;
+$black: #0F1A20 !default;
+
+$mags-purple: #9D69A3 !default;
+$mags-green: #40F99B !default;
+$mags-pink: #E85D75 !default;
+
+// Import Variables
 @import "../node_modules/bootswatch/dist/quartz/variables";
+
+// Bootstrap SCSS (Needs to be imported in between variables and bootswatch!)
 @import "../node_modules/bootstrap/scss/bootstrap";
+
+// Overrides
+// $body-bg-image: linear-gradient(90deg, shade-color($mags-green, 1%), shade-color($mags-purple, 10%), shade-color($mags-pink, 5%)) !default;
+
+// Bootswatch SCSS
 @import "../node_modules/bootswatch/dist/quartz/bootswatch";
