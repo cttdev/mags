@@ -5,6 +5,10 @@ setup(
     packages=["mags"],
     include_package_data=True,
     install_requires=[
-        "flask",
+        "Flask",
+        "Flask-SocketIO",
+        "libsass",
+        "chess",
+        "stockfish"
     ],
 )
