@@ -392,3 +392,6 @@ poetry.toml
 
 
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,node
+
+### Complielied SCSS ###
+mags/static/css/*
