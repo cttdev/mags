@@ -5,7 +5,7 @@ from sassutils.wsgi import SassMiddleware
 import chess
 from stockfish import Stockfish
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__, static_folder="../static", template_folder="../templates")
 app.debug = True
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
