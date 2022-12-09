@@ -9,6 +9,7 @@ setup(
         "Flask-SocketIO",
         "libsass",
         "chess",
-        "stockfish"
+        "stockfish",
+        "pybind11"
     ],
 )

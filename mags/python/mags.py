@@ -18,7 +18,7 @@ app.wsgi_app = SassMiddleware(app.wsgi_app, {
 
 board = chess.Board()
 
-stockfish = Stockfish(path=r"C:\Users\cttew\Downloads\stockfish_15.1_win_x64_avx2\stockfish_15.1_win_x64_avx2\stockfish-windows-2022-x86-64-avx2.exe")
+stockfish = Stockfish(path="stockfish/stockfish_15.1_linux_x64_avx2/stockfish-ubuntu-20.04-x86-64-avx2")
 
 @app.route("/")
 def index():
