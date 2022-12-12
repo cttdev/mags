@@ -1,4 +1,6 @@
+from itertools import combinations
 from matplotlib import pyplot as plt
+from matplotlib.patches import Arc
 import numpy as np
 
 from utils import dist, transform_polar, v2v_angle
@@ -50,9 +52,11 @@ class Edge:
     NOTE: Surfing edges are line segments, while hugging edges are arcs.
     """
 
-    def __init__(self, first, second):
+    def __init__(self, first, second, is_surfing):
         self.first = first
         self.second = second
+
+        self.surfing = is_surfing
 
     def get_first(self):
         return self.first
@@ -60,12 +64,16 @@ class Edge:
     def get_second(self):
         return self.second
 
+    def is_surfing(self):
+        return self.surfing
+
 class Graph:
     def __init__(self):
         self.nodes = {}
         self.circles = {}
 
-        self.edges = []
+        self.surfing_edges = []
+        self.hugging_edges = []
 
     def add_node(self, node):
         circle = node.get_circle()
@@ -73,9 +81,13 @@ class Graph:
         self.nodes[id(node)] = node
 
     def add_edge(self, edge):
-        # Check if the edge intersects any of the circles in the graph
-        if not self.check_intersection(edge):
-            self.edges.append(edge)
+        # If the edge is hugging, automatically append it
+        # Or, if the edge is surfing, check if the edge intersects any of the circles in the graph
+        if not edge.is_surfing():
+            self.hugging_edges.append(edge)
+        elif not self.check_intersection(edge):
+            self.surfing_edges.append(edge)
+
 
     def check_intersection(self, edge):
         """
@@ -139,11 +151,11 @@ class Graph:
         self.add_node(F_node)
 
         # Generate the first edge
-        self.add_edge(Edge(D_node, E_node))
+        self.add_edge(Edge(D_node, E_node, True))
 
         if (r1 > 0 and r2 > 0):
             # Generate the second internal bitangent edge if both circles have non zero radi
-            self.add_edge(Edge(C_node, F_node))
+            self.add_edge(Edge(C_node, F_node, True))
 
     def add_external_bitangets(self, circle1, circle2):
         """
@@ -194,11 +206,36 @@ class Graph:
         if (r1 > 0 or r2 > 0):
             # Generate the first external bitangent edge if either circle has a non zero radius
             # This is to avoid creating duplicate edges with the internal bitangents
-            self.add_edge(Edge(D_node, E_node))
+            self.add_edge(Edge(D_node, E_node, True))
 
         if (r1 > 0 and r2 > 0):
             # Generate the second internal bitangent edge if both circles have non zero radi
-            self.add_edge(Edge(C_node, F_node))
+            self.add_edge(Edge(C_node, F_node, True))
+
+    def add_hugging_edges(self):
+        """
+        Updates the hugging edges in the graph.
+        """
+        # Remove all the hugging edges
+        self.hugging_edges = []
+
+        # Sort the nodes by circle
+        nodes_by_circle = {}
+        for node in self.nodes.values():
+            circle = node.get_circle()
+            if circle not in nodes_by_circle:
+                nodes_by_circle[circle] = []
+
+            nodes_by_circle[circle].append(node)
+
+        # Add the hugging edges
+        for nodes in nodes_by_circle.values():
+            for i in range(len(nodes)):
+                # Connect the nodes in a circle
+                n1 = nodes[i] # Current node
+                n2 = nodes[(i + 1) % len(nodes)] # Next node (wraps around to the first node when the current node is the last node)
+
+                self.add_edge(Edge(n1, n2, False))    
 
     def plot_graph(self, axs):
         """
@@ -211,12 +248,25 @@ class Graph:
         for circle in self.circles.values():
             axs.add_patch(plt.Circle(circle.get_center(), circle.get_r(), fill=False))
 
-        # Plot the edges
-        for edge in self.edges:
+        # Plot the surfing edge lines
+        for edge in self.surfing_edges:
             first = edge.get_first()
             second = edge.get_second()
 
             axs.plot([first.get_x(), second.get_x()], [first.get_y(), second.get_y()], 'b-')
+
+        # Plot the hugging edge arcs
+        for edge in self.hugging_edges:
+            first = edge.get_first()
+            second = edge.get_second()
+
+            arc_center = first.get_circle().get_center()
+            arc_radius = first.get_circle().get_r()
+
+            arc_start = v2v_angle(arc_center, first.get_position())
+            arc_end = v2v_angle(arc_center, second.get_position())
+
+            axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=np.rad2deg(arc_start), theta2=np.rad2deg(arc_end), color='g'))
 
         # Plot the nodes
         for node in self.nodes.values():
@@ -287,7 +337,7 @@ if __name__ == "__main__":
     # Testing Grid of Circles
     graph = Graph()
 
-    grid_dims = np.array([8, 8])
+    grid_dims = np.array([2, 2])
     grid_spacing = 1
 
     circle_radius = 0.1
@@ -306,6 +356,8 @@ if __name__ == "__main__":
 
             # Store circle
             circles.append(i_circle)
+
+    graph.add_hugging_edges()
 
     print("Generated Graph!")
 
