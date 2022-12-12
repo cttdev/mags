@@ -10,6 +10,6 @@ setup(
         "libsass",
         "chess",
         "stockfish",
-        "pybind11"
+        "pybind11[global]"
     ],
 )
