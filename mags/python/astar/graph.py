@@ -74,6 +74,30 @@ class Graph:
         self.surfing_edges = []
         self.hugging_edges = []
 
+    def get_nodes(self):
+        return self.nodes
+    
+    def get_circles(self):
+        return self.circles
+    
+    def get_edges(self):
+        return self.surfing_edges + self.hugging_edges
+
+    def get_neightbors(self, node):
+        """
+        Returns the neighbors of a node on the graph.
+
+        """
+        neighbors = []
+
+        for edge in self.get_edges():
+            if edge.get_first() == node:
+                neighbors.append(edge.get_second())
+            elif edge.get_second() == node:
+                neighbors.append(edge.get_first())
+
+        return neighbors
+
     def add_node(self, node):
         circle = node.get_circle()
         self.circles[id(circle)] = circle
