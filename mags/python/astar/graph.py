@@ -1,4 +1,3 @@
-from itertools import combinations
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
@@ -337,7 +336,7 @@ if __name__ == "__main__":
     # Testing Grid of Circles
     graph = Graph()
 
-    grid_dims = np.array([2, 2])
+    grid_dims = np.array([8, 4])
     grid_spacing = 1
 
     circle_radius = 0.1
