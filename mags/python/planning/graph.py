@@ -91,6 +91,13 @@ class Graph:
     def get_edges(self):
         return self.surfing_edges + self.hugging_edges
 
+    def clear(self):
+        self.nodes.clear()
+        self.circles.clear()
+
+        self.surfing_edges.clear()
+        self.hugging_edges.clear()
+
     def get_neighbors(self, node):
         """
         Returns the neighbors of a node on the graph.

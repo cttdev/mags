@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
-from mags.python.astar.graph import Circle, Graph, Node
+from mags.python.planning.graph import Circle, Graph, Node
 from queue import PriorityQueue
 
 from utils import dist, v2v_angle
@@ -44,6 +44,13 @@ class Astar:
         self.goal = Node(goal_circle, goal)
 
         graph.add_point(self.goal)
+
+    def set_graph(self):
+        """
+        Set the graph to be searched.
+
+        """
+        self.graph = graph
     
     def get_edge_cost(self, edge):
         """
@@ -92,6 +99,8 @@ class Astar:
         self.frontier.queue.clear()
         self.explored.clear()
         self.cost.clear()
+
+        self.path = None
 
     def calculate_path(self):
         """
