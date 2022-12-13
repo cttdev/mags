@@ -231,6 +231,8 @@ if __name__ == "__main__":
             # Store circle
             circles.append(i_circle)
 
+    graph.clean_surfing_edges()
+
     # Initialize A*
     astar = Astar(graph, np.array([0.5, 0.5]), np.array([6.5, 1]))
 

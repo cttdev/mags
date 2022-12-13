@@ -117,8 +117,20 @@ class Graph:
         # Or, if the edge is surfing, check if the edge intersects any of the circles in the graph
         if not edge.is_surfing():
             self.hugging_edges.append(edge)
-        elif not self.check_intersection(edge):
+        else:
             self.surfing_edges.append(edge)
+
+    def clean_surfing_edges(self):
+        """
+        Removes all edges that intersect any of the circles in the graph.
+
+        """
+        new_surfing_edges = self.surfing_edges.copy()
+        for edge in self.surfing_edges:
+            if self.check_intersection(edge):
+                new_surfing_edges.remove(edge)
+        
+        self.surfing_edges = new_surfing_edges
 
 
     def check_intersection(self, edge):
@@ -155,6 +167,7 @@ class Graph:
             self.add_tangents(node, other_circle)
 
         # Recalculate the hugging edges
+        self.clean_surfing_edges()
         self.add_hugging_edges() # TODO: Optimize this
 
         return node
