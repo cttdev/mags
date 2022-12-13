@@ -4,7 +4,7 @@ import numpy as np
 from mags.python.astar.graph import Circle, Graph, Node
 from queue import PriorityQueue
 
-from utils import dist, transform_polar, v2v_angle
+from utils import dist, v2v_angle
 
 
 class Astar:
