@@ -1,0 +1,169 @@
+import string
+import chess
+from matplotlib import pyplot as plt
+import numpy as np
+
+from planning.graph import Circle, Graph
+
+
+class PhysicalBoard():
+    """
+    A class to represent a chess board for move making.
+    NOTE: All diemensions are in mm.
+
+    Board Coordinate System: BCS -> [0, 8]:[0, 8]
+    Chess Coordinate System: CCS -> [a, h]:[1, 8]
+    [0, 8] (a, 8)
+    y
+    ^
+    |
+    |
+    0,0 -----> x [8, 0] (h, 1)
+    """
+
+    def __init__(self, length, width, piece_diameter, clerance):
+        self.board = chess.Board()
+
+        # Calculate the piece clerance radius
+        # The is the raidus of the circle around the piece used for path finding
+        piece_raidus = piece_diameter / 2.0
+        self.clerance_radius = piece_raidus * 2 + clerance
+
+        # Square mapping
+        # The mapping from the board coordinate system to the square positions
+        # The square positions are stored in a numpy array with thier BCS index and a dictionary is used to map thier CCS index to their BCS index
+        # Generate a numpy array with the positions of all the squares
+        self.square_positions = np.zeros((8, 8, 2))
+        self.square_indicies = {}
+
+        square_width = width / 8.0
+        square_length = length / 8.0
+
+        # Generate the x positions
+        x_positions = np.arange(square_width / 2.0, width, square_width)
+
+        # Generate the y positions
+        y_positions = np.arange(square_length / 2.0, length, square_length)
+
+        # Put them in the square positions array
+        for i in range(8):
+            for j in range(8):
+                # Put the x and y positions in the square positions array
+                self.square_positions[i, j, 0] = x_positions[i]
+                self.square_positions[i, j, 1] = y_positions[j]
+                
+                # Put the CCS to BCS mapping in the square indicies dictionary
+                self.square_indicies[string.ascii_lowercase[i] + str(j + 1)] = (i, j)
+
+    def get_fen(self):
+        """
+        Get the FEN representation of the board.
+        """
+        return self.board.fen()
+
+    def reset(self, fen=None):
+        """
+        Reset and clear the board.
+        """
+        if fen is not None:
+            self.board.set_fen(fen)
+        else:
+            self.board.reset()
+    
+    def clear(self):
+        """
+        Clear the board.
+        """
+        self.board.clear()
+
+    def make_move(self, move):
+        """
+        Check's if a move is legal and then makes it.
+        NOTE: This function updates the board's state
+        """
+        move = chess.Move.from_uci(move)
+
+        # Check if the move is legal or not
+        if not self.board.is_legal(move):
+            return
+        else:
+            self.board.push(move)
+
+    def get_square_position(self, square):
+        """
+        Get the position of a UCI square on the board.
+        """
+        # Get the square index
+        square_index = self.square_indicies[square]
+
+        print(square_index)
+
+        # Get the square position
+        square_position = self.square_positions[square_index[0], square_index[1], :]
+
+        return square_position
+
+    def generate_map(self, excluded_squares=[]):
+        """
+        Generate a map of the board.
+        Exclude the squares in the excluded_squares list.
+        """
+        # Get the board map from python chess
+        piece_map = self.board.piece_map()
+
+        # Create a list to store the board map
+        board_map = []
+
+        # Generate the excluded squares indicies in BCS
+        excluded_squares_indicies = []
+        for square in excluded_squares:
+            excluded_squares_indicies.append(self.square_indicies[square])
+
+        print(piece_map)
+        
+        # Loop through the board map
+        for position, _ in piece_map.items():
+            # Piece map is labeled with a row-major index
+            #
+            # 56 57 58 59 60 61 62 63
+            # ...
+            # 0  1  2  3  4  5  6  7
+
+            # Get x and y position of the piece on the board
+            board_index = np.unravel_index(position, (8, 8)) #  Retrns a tuple of (row, col)
+
+            # We need to reverse the unraveled index to get the BCS index
+            # row = y
+            # col = x
+            board_index = (board_index[1], board_index[0])
+
+            if board_index in excluded_squares_indicies:
+                continue
+            
+            # Get the x and y position of the piece on the board
+            x = self.square_positions[board_index[0], board_index[1], 0]
+            y = self.square_positions[board_index[0], board_index[1], 1]
+
+            # Add the piece cricle to the board map
+            board_map.append(Circle(self.clerance_radius, np.array([x, y])))
+
+        # Create a graph from the board map
+        return Graph(board_map)
+
+if __name__ == "__main__":
+    board = PhysicalBoard(400, 400, 10, 3)
+    # board.reset("r1b1k1nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1")
+    board.reset()
+
+    board.make_move("d2d4")
+
+    graph = board.generate_map()
+
+    print("Map Generated!")
+
+    fig, axs = plt.subplots()
+    graph.plot_graph(axs)
+
+    print(board.square_positions)
+
+    plt.show()

@@ -1,10 +1,10 @@
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
-from mags.python.planning.graph import Circle, Graph, Node
+from planning.graph import Circle, Graph, Node
 from queue import PriorityQueue
 
-from utils import dist, v2v_angle
+from planning.utils import dist, v2v_angle
 
 
 class Astar:
@@ -12,7 +12,7 @@ class Astar:
     A class to preform A* path finding on a graph.
 
     """
-    def __init__(self, graph, start, goal):
+    def __init__(self, graph=None, start=None, goal=None):
         self.graph = graph
 
         self.frontier = PriorityQueue()
@@ -22,8 +22,12 @@ class Astar:
 
         self.path = None
 
-        self.set_start(start)
-        self.set_goal(goal)
+        if start is not None and goal is not None:
+            self.set_start(start)
+            self.set_goal(goal)
+        else:
+            self.start = None
+            self.goal = None
 
     def set_start(self, start):
         """
@@ -33,7 +37,7 @@ class Astar:
         start_circle = Circle(0, start)
         self.start = Node(start_circle, start)
 
-        graph.add_point(self.start)
+        self.graph.add_point(self.start)
 
     def set_goal(self, goal):
         """
@@ -43,9 +47,9 @@ class Astar:
         goal_circle = Circle(0, goal)
         self.goal = Node(goal_circle, goal)
 
-        graph.add_point(self.goal)
+        self.graph.add_point(self.goal)
 
-    def set_graph(self):
+    def set_graph(self, graph):
         """
         Set the graph to be searched.
 

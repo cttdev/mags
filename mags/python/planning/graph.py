@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
 
-from utils import dist, transform_polar, v2v_angle
+from planning.utils import dist, transform_polar, v2v_angle
 
 
 class Circle:
@@ -44,6 +44,15 @@ class Node:
     def get_y(self):
         return self.position[1]
 
+    def __lt__(self, other):
+        """
+        Implements the less than operator for nodes.
+        NOTE: This is used to compare nodes in the priority queue.
+        If two nodes have the same priority, the one with the lower id is considered to be less than the other.
+        TODO: Bit sus?
+        """
+        return id(self) < id(other)
+
 
 class Edge:
     """
@@ -75,12 +84,28 @@ class Edge:
         return (self.get_first() == other.get_first() and self.get_second() == other.get_second()) or (self.get_first() == other.get_second() and self.get_second() == other.get_first())
 
 class Graph:
-    def __init__(self):
+    def __init__(self, circles):
         self.nodes = {}
         self.circles = {}
 
         self.surfing_edges = []
         self.hugging_edges = []
+
+        # Add the circles to the graph
+        for circle in circles:
+            for other_circle in circles:
+                if circle == other_circle:
+                    continue
+                
+                # Add internal and external bitangents btetween circles
+                self.add_internal_bitangets(other_circle, circle)
+                self.add_external_bitangets(other_circle, circle)
+
+        # Add hugging edges
+        self.add_hugging_edges()
+
+        # Clean up the sufing edge intersections
+        self.clean_surfing_edges()
 
     def get_nodes(self):
         return self.nodes
@@ -363,7 +388,7 @@ class Graph:
 
                 self.add_edge(Edge(n1, n2, False))    
 
-    def plot_graph(self, axs):
+    def plot_graph(self, axs, simplify=True):
         """
         Plots the graph on the given axes.
         """
@@ -374,34 +399,35 @@ class Graph:
         for circle in self.circles.values():
             axs.add_patch(plt.Circle(circle.get_center(), circle.get_r(), fill=False))
 
-        # Plot the surfing edge lines
-        # count = 0
-        for edge in self.surfing_edges:
-            first = edge.get_first()
-            second = edge.get_second()
+        if not simplify:
+            # Plot the surfing edge lines
+            # count = 0
+            for edge in self.surfing_edges:
+                first = edge.get_first()
+                second = edge.get_second()
 
-            axs.plot([first.get_x(), second.get_x()], [first.get_y(), second.get_y()], "b-")
+                axs.plot([first.get_x(), second.get_x()], [first.get_y(), second.get_y()], "b-")
 
-            # # Label the surfing edges
-            # axs.text((first.get_x() + second.get_x()) / 2, (first.get_y() + second.get_y()) / 2, str(count), color="b")
-            # count += 1
+                # # Label the surfing edges
+                # axs.text((first.get_x() + second.get_x()) / 2, (first.get_y() + second.get_y()) / 2, str(count), color="b")
+                # count += 1
 
-        # Plot the hugging edge arcs
-        for edge in self.hugging_edges:
-            first = edge.get_first()
-            second = edge.get_second()
+            # Plot the hugging edge arcs
+            for edge in self.hugging_edges:
+                first = edge.get_first()
+                second = edge.get_second()
 
-            arc_center = first.get_circle().get_center()
-            arc_radius = first.get_circle().get_r()
+                arc_center = first.get_circle().get_center()
+                arc_radius = first.get_circle().get_r()
 
-            arc_start = v2v_angle(arc_center, first.get_position())
-            arc_end = v2v_angle(arc_center, second.get_position())
+                arc_start = v2v_angle(arc_center, first.get_position())
+                arc_end = v2v_angle(arc_center, second.get_position())
 
-            axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=np.rad2deg(arc_start), theta2=np.rad2deg(arc_end), color="g"))
+                axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=np.rad2deg(arc_start), theta2=np.rad2deg(arc_end), color="g"))
 
-        # Plot the nodes
-        for node in self.nodes.values():
-            axs.plot(node.get_x(), node.get_y(), "ro")
+            # Plot the nodes
+            for node in self.nodes.values():
+                axs.plot(node.get_x(), node.get_y(), "ro")
 
     @staticmethod
     def check_circle_intersection(circle, edge):
@@ -466,7 +492,7 @@ if __name__ == "__main__":
     # graph.plot_graph(axs)
 
     # Testing Grid of Circles
-    graph = Graph()
+    graph = Graph([])
 
     grid_dims = np.array([8, 4])
     grid_spacing = 1

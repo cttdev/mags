@@ -54,6 +54,8 @@ def move(data):
     
     board.push(chess.Move.from_uci(stockfish.get_best_move()))
 
+    print(board.fen())
+
     update_state()
 
 def update_state():
