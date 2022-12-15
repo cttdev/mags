@@ -72,12 +72,27 @@ class Astar:
             # If the edge is hugging, calculate the arc length
             arc_center = first.get_circle().get_center()
 
-            # Get the angle between the two nodes
-            start = v2v_angle(arc_center, first.get_position())
-            end = v2v_angle(arc_center, second.get_position())
+            # Calculate the angle between the vectors:
+            #  a: The vector from the arc center to the first node
+            #  b: The vector from the arc center to the second node
+            # The dot product of these two vectors is:
+            #  a dot b = |a| * |b| * cos(theta)
+            # The angle between the vectors is:
+            #  theta = arccos(a dot b / (|a| * |b|))
+            # The range of arccos is [0, pi] so it is guaganreted to give us the smallest, positive angle
 
-            # Get the angle between the two nodes
-            angle = end - start
+            # Generate the vectors
+            a = first.get_position() - arc_center
+            b = second.get_position() - arc_center
+
+            # Calculate the angle
+            cos_angle = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+            
+            # Check for floating point errors
+            cos_angle = np.clip(cos_angle, -1.0, 1.0)
+            
+            # Calculate the angle
+            angle = np.arccos(cos_angle)
 
             # Get the radius of the circle
             radius = first.get_circle().get_r()
@@ -85,7 +100,7 @@ class Astar:
             # Calculate the arc length
             arc_length = radius * angle
 
-            return 1 + abs(arc_length)
+            return 1 + arc_length
 
     def get_heuristic(self, node):
         """
@@ -197,7 +212,11 @@ class Astar:
                     arc_start = v2v_angle(arc_center, node.get_position())
                     arc_end = v2v_angle(arc_center, next_node.get_position())
 
-                    axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=np.rad2deg(arc_start), theta2=np.rad2deg(arc_end), color="orange", linewidth=4))
+                    # Determine the start and end points for plotting and conver the angles to degrees
+                    theta1 = np.rad2deg(min(arc_start, arc_end))
+                    theta2 = np.rad2deg(max(arc_start, arc_end))
+
+                    axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=theta1, theta2=theta2, color="orange", linewidth=4))
                 else:
                     # Surfing Edge
                     axs.plot([node.get_position()[0], next_node.get_position()[0]], [node.get_position()[1], next_node.get_position()[1]], "orange", linewidth=4)
@@ -222,7 +241,7 @@ if __name__ == "__main__":
     # graph.add_external_bitangets(circle1, circle2)
 
     # Testing Grid of Circles
-    graph = Graph()
+    graph = Graph([])
 
     grid_dims = np.array([8, 4])
     grid_spacing = 1
@@ -257,7 +276,7 @@ if __name__ == "__main__":
     fig, axs = plt.subplots()
 
     # Plot graph
-    graph.plot_graph(axs)
+    graph.plot_graph(axs, simplify=False)
 
     # Plot path
     astar.plot_path(axs)

@@ -11,6 +11,7 @@ setup(
         "libsass",
         "chess",
         "stockfish",
+        "cairosvg",
         "pybind11[global]"
     ],
 )

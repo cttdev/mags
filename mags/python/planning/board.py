@@ -1,6 +1,10 @@
 import string
 import chess
+import chess.svg
+import cairosvg
 from matplotlib import pyplot as plt
+from PIL import Image
+import io
 import numpy as np
 
 from planning.graph import Circle, Graph
@@ -21,13 +25,23 @@ class PhysicalBoard():
     0,0 -----> x [8, 0] (h, 1)
     """
 
-    def __init__(self, length, width, piece_diameter, clerance):
+    def __init__(self, length, width, piece_diameter, clerance, capture_positions):
         self.board = chess.Board()
+
+        # Store the board diemensions and piece diameter
+        self.length = length
+        self.width = width
+
+        self.piece_diameter = piece_diameter
+
+        # Initialize the caputre positions
+        self.capture_positions = capture_positions
+        self.open_capture_positions = capture_positions.copy()
 
         # Calculate the piece clerance radius
         # The is the raidus of the circle around the piece used for path finding
-        piece_raidus = piece_diameter / 2.0
-        self.clerance_radius = piece_raidus * 2 + clerance
+        piece_radius = piece_diameter / 2.0
+        self.clerance_radius = piece_radius * 2 + clerance
 
         # Square mapping
         # The mapping from the board coordinate system to the square positions
@@ -65,6 +79,8 @@ class PhysicalBoard():
         """
         Reset and clear the board.
         """
+        self.open_capture_positions = self.capture_positions.copy()
+
         if fen is not None:
             self.board.set_fen(fen)
         else:
@@ -74,7 +90,28 @@ class PhysicalBoard():
         """
         Clear the board.
         """
+        self.open_capture_positions = self.capture_positions.copy()
+
         self.board.clear()
+
+    def check_capture(self, move):
+        """
+        Check if a move is a capture.
+        """
+        move = chess.Move.from_uci(move)
+
+        return self.board.is_capture(move)
+
+    def get_open_capture_position(self):
+        """
+        Get the first open capture position.
+        """
+        # Check if there are any open capture positions
+        try:
+            return self.open_capture_positions.pop(0)
+        # If there are no open capture positions return the first capture position
+        except IndexError:
+            return self.capture_positions[0]
 
     def make_move(self, move):
         """
@@ -118,8 +155,6 @@ class PhysicalBoard():
         excluded_squares_indicies = []
         for square in excluded_squares:
             excluded_squares_indicies.append(self.square_indicies[square])
-
-        print(piece_map)
         
         # Loop through the board map
         for position, _ in piece_map.items():
@@ -150,8 +185,66 @@ class PhysicalBoard():
         # Create a graph from the board map
         return Graph(board_map)
 
+    def plot_background(self, axs):
+        """
+        Plots the background of the board.
+
+        """
+
+        # Render chess board svg
+        svg = chess.svg.board(
+            board = self.board,
+            coordinates = False
+        )
+
+        # Convert svg to png
+        png = cairosvg.svg2png(svg, dpi=100)
+
+        # Plot the png
+        img = Image.open(io.BytesIO(png))
+        axs.imshow(img, extent=[0, self.width, 0, self.length])
+
+    def plot_board(self, axs):
+        """
+        Plots the pieces on the board.
+    
+        """
+
+        # Get the board map from python chess
+        piece_map = self.board.piece_map()
+
+        # Loop through the board map
+        for position, _ in piece_map.items():
+            # Piece map is labeled with a row-major index
+            #
+            # 56 57 58 59 60 61 62 63
+            # ...
+            # 0  1  2  3  4  5  6  7
+
+            # Get x and y position of the piece on the board
+            board_index = np.unravel_index(position, (8, 8)) #  Retrns a tuple of (row, col)
+
+            # We need to reverse the unraveled index to get the BCS index
+            # row = y
+            # col = x
+            board_index = (board_index[1], board_index[0])
+            
+            # Get the x and y position of the piece on the board
+            x = self.square_positions[board_index[0], board_index[1], 0]
+            y = self.square_positions[board_index[0], board_index[1], 1]
+
+            # Plot a circle at the position of the piece
+            axs.add_patch(plt.Circle([x, y], self.piece_diameter / 2, fill=False, color="green"))
+
 if __name__ == "__main__":
-    board = PhysicalBoard(400, 400, 10, 3)
+    capture_positions = [
+        np.array([450, 450]),
+        np.array([450, 400]),
+        np.array([450, 350]),
+        np.array([450, 300]),
+    ]
+
+    board = PhysicalBoard(400, 400, 10, 3, capture_positions)
     # board.reset("r1b1k1nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1")
     board.reset()
 

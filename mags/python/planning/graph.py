@@ -1,8 +1,9 @@
+import copy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
 
-from planning.utils import dist, transform_polar, v2v_angle
+from planning.utils import dist, transform_polar, v2v_angle, zero_to_2pi
 
 
 class Circle:
@@ -91,6 +92,10 @@ class Graph:
         self.surfing_edges = []
         self.hugging_edges = []
 
+        self.points = []
+        self.point_circles = []
+        self.tanget_edges = [] # Store the tangent edges seperately to allow of easy modification of the graph
+
         # Add the circles to the graph
         for circle in circles:
             for other_circle in circles:
@@ -101,11 +106,11 @@ class Graph:
                 self.add_internal_bitangets(other_circle, circle)
                 self.add_external_bitangets(other_circle, circle)
 
-        # Add hugging edges
-        self.add_hugging_edges()
-
         # Clean up the sufing edge intersections
         self.clean_surfing_edges()
+
+        # Add hugging edges
+        self.add_hugging_edges()
 
     def get_nodes(self):
         return self.nodes
@@ -114,7 +119,7 @@ class Graph:
         return self.circles
     
     def get_edges(self):
-        return self.surfing_edges + self.hugging_edges
+        return self.surfing_edges + self.tanget_edges + self.hugging_edges
 
     def clear(self):
         self.nodes.clear()
@@ -122,6 +127,21 @@ class Graph:
 
         self.surfing_edges.clear()
         self.hugging_edges.clear()
+    
+    def clear_points(self):
+        """
+        Removes all points from the graph.
+
+        """
+        for point in self.points:
+            self.nodes.pop(id(point))
+
+        for circle in self.point_circles:
+            self.circles.pop(id(circle))
+
+        self.points.clear()
+        self.point_circles.clear()
+        self.tanget_edges.clear()
 
     def get_neighbors(self, node):
         """
@@ -157,13 +177,40 @@ class Graph:
         Removes all edges that intersect any of the circles in the graph.
 
         """
+        # Clean surfing edges
         new_surfing_edges = self.surfing_edges.copy()
         for edge in self.surfing_edges:
             if self.check_intersection(edge):
                 new_surfing_edges.remove(edge)
         
         self.surfing_edges = new_surfing_edges
+        
+        # Clean tangent edges
+        new_tangent_edges = self.tanget_edges.copy()
+        for edge in self.tanget_edges:
+            if self.check_intersection(edge):
+                new_tangent_edges.remove(edge)
+        
+        self.tanget_edges = new_tangent_edges
 
+        # # Remove nodes that are no longer connected to any other nodes
+        # self.remove_unconnected_nodes() # TODO: Very slow
+
+    def remove_unconnected_nodes(self):
+        """
+        Removes all nodes that are no longer connected to any other nodes.
+
+        """
+        # Create a copy of the nodes dictionary
+        new_nodes = self.nodes.copy()
+
+        # Remove all nodes that are not connected to any other nodes
+        for node in self.nodes.values():
+            if len(self.get_neighbors(node)) == 0:
+                new_nodes.pop(id(node))
+
+        # Update the nodes dictionary
+        self.nodes = new_nodes
 
     def check_intersection(self, edge):
         """
@@ -187,10 +234,14 @@ class Graph:
         NOTE: This updates the surfing and hugging edges.
 
         """
+        # Keep track of which nodes are points
+        self.points.append(node)
+        self.point_circles.append(node.get_circle())
+
         # Add the node and its circle to the graph
         self.add_node(node)
 
-        # Add external and internal bigtangents to the point
+        # Add internal bigtangents to the point
         for other_circle in self.circles.values():
             if other_circle == node.get_circle():
                 continue
@@ -232,7 +283,7 @@ class Graph:
                     return
             
             # Add the edge
-            self.add_edge(edge)
+            self.tanget_edges.append(edge)
             return
 
     
@@ -257,8 +308,8 @@ class Graph:
         self.add_node(F_node)
 
         # Generate the internal bitangent edges
-        self.add_edge(Edge(point_node, E_node, True))
-        self.add_edge(Edge(point_node, F_node, True))
+        self.tanget_edges.append(Edge(point_node, E_node, True))
+        self.tanget_edges.append(Edge(point_node, F_node, True))
         
 
     def add_internal_bitangets(self, circle1, circle2):
@@ -379,8 +430,30 @@ class Graph:
 
             nodes_by_circle[circle].append(node)
 
+        # Order the nodes by angle
+        def get_angle(circle, node):
+            # Get the v2v angle between the circle center and the node (range [-pi, pi])
+            angle = v2v_angle(circle.get_center(), node.get_position())
+
+            # Convert the angle to the range [0, 2pi]
+            angle = zero_to_2pi(angle)
+
+            return angle
+
+        # Sort the nodes on each circle by angle
+        for circle in nodes_by_circle.keys():
+            # Get the nodes on the circle
+            circle_nodes = nodes_by_circle[circle]
+
+            # Sort the nodes by angle
+            circle_nodes.sort(key=lambda node: get_angle(circle, node))
+
         # Add the hugging edges
-        for nodes in nodes_by_circle.values():
+        for circle in nodes_by_circle.keys():
+            # Get the nodes on the circle
+            nodes = nodes_by_circle[circle]
+
+            # Iterate over the nodes
             for i in range(len(nodes)):
                 # Connect the nodes in a circle
                 n1 = nodes[i] # Current node
@@ -402,7 +475,7 @@ class Graph:
         if not simplify:
             # Plot the surfing edge lines
             # count = 0
-            for edge in self.surfing_edges:
+            for edge in self.surfing_edges + self.tanget_edges:
                 first = edge.get_first()
                 second = edge.get_second()
 
@@ -413,7 +486,7 @@ class Graph:
                 # count += 1
 
             # Plot the hugging edge arcs
-            for edge in self.hugging_edges:
+            for edge in self.hugging_edges[::2]:
                 first = edge.get_first()
                 second = edge.get_second()
 
@@ -423,11 +496,23 @@ class Graph:
                 arc_start = v2v_angle(arc_center, first.get_position())
                 arc_end = v2v_angle(arc_center, second.get_position())
 
-                axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=np.rad2deg(arc_start), theta2=np.rad2deg(arc_end), color="g"))
+                # For plotting we will first transform the angles to be in the range [0, 2pi)
+                arc_start = zero_to_2pi(arc_start)
+                arc_end = zero_to_2pi(arc_end)
 
-            # Plot the nodes
-            for node in self.nodes.values():
-                axs.plot(node.get_x(), node.get_y(), "ro")
+                # Determine the start and end points for plotting and conver the angles to degrees
+                theta1 = np.rad2deg(min(arc_start, arc_end))
+                theta2 = np.rad2deg(max(arc_start, arc_end))
+
+                # Plot the start and end points
+                axs.plot(first.get_x(), first.get_y(), "r*")
+                axs.plot(second.get_x(), second.get_y(), "g*")
+
+                axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=theta1, theta2=theta2, color="g"))
+
+            # # Plot the nodes
+            # for node in self.nodes.values():
+            #     axs.plot(node.get_x(), node.get_y(), "ro")
 
     @staticmethod
     def check_circle_intersection(circle, edge):
@@ -494,7 +579,7 @@ if __name__ == "__main__":
     # Testing Grid of Circles
     graph = Graph([])
 
-    grid_dims = np.array([8, 4])
+    grid_dims = np.array([2, 2])
     grid_spacing = 1
 
     circle_radius = 0.1
@@ -519,6 +604,6 @@ if __name__ == "__main__":
     print("Generated Graph!")
 
     fig, axs = plt.subplots()
-    graph.plot_graph(axs)
+    graph.plot_graph(axs, simplify=False)
 
     plt.show()

@@ -57,3 +57,11 @@ def transform_polar(vec, r, theta):
     y_new = vec[1] + r * np.sin(theta)
 
     return np.array([x_new, y_new])
+
+def zero_to_2pi(angle):
+    """
+    Converts and angle in the range [-pi, pi] to the range [0, 2pi].
+    
+    """
+
+    return angle % (2 * np.pi)
