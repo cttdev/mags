@@ -29,7 +29,8 @@ def dist(vec1, vec2):
     
     """
 
-    return np.linalg.norm(vec1 - vec2)
+    # Calculate the distance
+    return np.sqrt((vec2[0] - vec1[0])**2 + (vec2[1] - vec1[1])**2)
 
 def v2v_angle(vec1, vec2):
     """
@@ -57,6 +58,14 @@ def transform_polar(vec, r, theta):
     y_new = vec[1] + r * np.sin(theta)
 
     return np.array([x_new, y_new])
+
+def cross(vec1, vec2):
+    """
+    Returns the magnitude of the cross product of two vectors in R2.
+    
+    """
+
+    return abs(vec1[0] * vec2[1] - vec1[1] * vec2[0])
 
 def zero_to_2pi(angle):
     """

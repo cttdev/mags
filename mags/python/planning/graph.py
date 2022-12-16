@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
 
-from planning.utils import dist, transform_polar, v2v_angle, zero_to_2pi
+from planning.utils import cross, dist, transform_polar, v2v_angle, zero_to_2pi
 
 
 class Circle:
@@ -599,7 +599,7 @@ class Graph:
             # A = |(pos2 - pos1) x (center - pos1)|
             # h = A / b
             # h = |(pos2 - pos1) x (center - pos1)| / |pos2 - pos1|
-            d = np.linalg.norm(np.cross(pos2 - pos1, center - pos1)) / dist(pos2, pos1)
+            d = cross(pos2 - pos1, center - pos1) / dist(pos2, pos1)
 
         # Check if the edge intersects the circle
         if (d <= r):
