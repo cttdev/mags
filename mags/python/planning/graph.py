@@ -1,3 +1,4 @@
+from collections import UserList
 import copy
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
@@ -55,23 +56,22 @@ class Node:
         return id(self) < id(other)
 
 
-class Edge:
+class Edge(UserList):
     """
     Class that represents an edge in the graph. This is a line segment or arc between two nodes.
     NOTE: Surfing edges are line segments, while hugging edges are arcs.
     """
 
     def __init__(self, first, second, is_surfing):
-        self.first = first
-        self.second = second
+        self.data = [first, second]
 
         self.surfing = is_surfing
 
     def get_first(self):
-        return self.first
+        return self[0]
 
     def get_second(self):
-        return self.second
+        return self[1]
 
     def is_surfing(self):
         return self.surfing
@@ -112,6 +112,9 @@ class Graph:
         # Add hugging edges
         self.add_hugging_edges()
 
+        # Edge optimization
+        self.prepare_edge_optimization()
+
     def get_nodes(self):
         return self.nodes
     
@@ -143,6 +146,14 @@ class Graph:
         self.point_circles.clear()
         self.tanget_edges.clear()
 
+    def prepare_edge_optimization(self):
+        """
+        Generates a numpy array of the final edges for speedups.
+        """
+
+        # Generate np_edges for optimization
+        self.np_edges = np.array(self.get_edges())
+
     def get_neighbors(self, node):
         """
         Returns the neighbors of a node on the graph.
@@ -151,11 +162,29 @@ class Graph:
         """
         neighbors = []
 
-        for edge in self.get_edges():
-            if edge.get_first() == node:
-                neighbors.append((edge.get_second(), edge))
-            elif edge.get_second() == node:
-                neighbors.append((edge.get_first(), edge))
+        # Get the indicies of the edges that contain the node
+        node_indicies = np.where(self.np_edges == node)
+
+        # Get the neighbors
+        for i in range(len(node_indicies[0])):
+            node_row = node_indicies[0][i]
+            node_col = node_indicies[1][i]
+            
+            # If the node is the first node in the edge, the second node is the neighbor
+            if node_col == 0:
+                neighbors.append((self.np_edges[node_row][1], self.get_edges()[node_row]))
+            # If the node is the second node in the edge, the first node is the neighbor
+            else:
+                neighbors.append((self.np_edges[node_row][0], self.get_edges()[node_row]))
+
+        # # Slow Method
+        # for edge in self.get_edges():
+        #     if edge.get_first() == node:
+        #         neighbors.append((edge.get_second(), edge))
+        #         print("hi")
+        #     elif edge.get_second() == node:
+        #         neighbors.append((edge.get_first(), edge))
+        #         print("low")
 
         return neighbors
 
@@ -252,6 +281,9 @@ class Graph:
         # Recalculate the hugging edges
         self.clean_surfing_edges()
         self.add_hugging_edges() # TODO: Optimize this
+
+        # Edge Optimization
+        self.prepare_edge_optimization()
 
         return node
 
@@ -461,16 +493,16 @@ class Graph:
 
                 self.add_edge(Edge(n1, n2, False))    
 
-    def plot_graph(self, axs, simplify=True):
+    def plot_graph(self, ax, simplify=True):
         """
         Plots the graph on the given axes.
         """
         # Set square aspect ratio
-        axs.set_aspect("equal")
+        ax.set_aspect("equal")
 
         # Plot the circles
         for circle in self.circles.values():
-            axs.add_patch(plt.Circle(circle.get_center(), circle.get_r(), fill=False))
+            ax.add_patch(plt.Circle(circle.get_center(), circle.get_r(), fill=False))
 
         if not simplify:
             # Plot the surfing edge lines
@@ -479,10 +511,10 @@ class Graph:
                 first = edge.get_first()
                 second = edge.get_second()
 
-                axs.plot([first.get_x(), second.get_x()], [first.get_y(), second.get_y()], "b-")
+                ax.plot([first.get_x(), second.get_x()], [first.get_y(), second.get_y()], "b-")
 
                 # # Label the surfing edges
-                # axs.text((first.get_x() + second.get_x()) / 2, (first.get_y() + second.get_y()) / 2, str(count), color="b")
+                # ax.text((first.get_x() + second.get_x()) / 2, (first.get_y() + second.get_y()) / 2, str(count), color="b")
                 # count += 1
 
             # Plot the hugging edge arcs
@@ -505,14 +537,14 @@ class Graph:
                 theta2 = np.rad2deg(max(arc_start, arc_end))
 
                 # Plot the start and end points
-                axs.plot(first.get_x(), first.get_y(), "r*")
-                axs.plot(second.get_x(), second.get_y(), "g*")
+                ax.plot(first.get_x(), first.get_y(), "r*")
+                ax.plot(second.get_x(), second.get_y(), "g*")
 
-                axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=theta1, theta2=theta2, color="g"))
+                ax.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=theta1, theta2=theta2, color="g"))
 
             # # Plot the nodes
             # for node in self.nodes.values():
-            #     axs.plot(node.get_x(), node.get_y(), "ro")
+            #     ax.plot(node.get_x(), node.get_y(), "ro")
 
     @staticmethod
     def check_circle_intersection(circle, edge):
@@ -527,6 +559,17 @@ class Graph:
 
         pos1 = edge.get_first().get_position()
         pos2 = edge.get_second().get_position()
+
+        # Check if the edge is a point
+        if (pos1 == pos2).all():  
+            # # Check if the point is on the circle
+            # if np.linalg.norm(pos1 - center) == r:
+            #     return True
+            # else:
+            #     return False
+
+            # It is faster to assume the point lies on another circle and thus cannot intersect this circle
+            return False
 
         # Calculate the distance between the edge and the circle center
         # Creates a parallelogram where the edge is the base and the circle lies on one of the corners with:
@@ -573,13 +616,13 @@ if __name__ == "__main__":
     # graph.add_internal_bitangets(circle1, circle2)
     # graph.add_external_bitangets(circle1, circle2)
 
-    # fig, axs = plt.subplots()
-    # graph.plot_graph(axs)
+    # fig, ax = plt.subplots()
+    # graph.plot_graph(ax)
 
     # Testing Grid of Circles
     graph = Graph([])
 
-    grid_dims = np.array([2, 2])
+    grid_dims = np.array([8, 4])
     grid_spacing = 1
 
     circle_radius = 0.1
@@ -603,7 +646,7 @@ if __name__ == "__main__":
 
     print("Generated Graph!")
 
-    fig, axs = plt.subplots()
-    graph.plot_graph(axs, simplify=False)
+    fig, ax = plt.subplots()
+    graph.plot_graph(ax, simplify=False)
 
     plt.show()

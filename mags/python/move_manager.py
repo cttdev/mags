@@ -18,7 +18,7 @@ class MoveManager():
 
         self.stockfish = stockfish
 
-    def respond(self):
+    def respond(self, plotting_axs=None):
         """
         Respond to the current board state.
 
@@ -42,14 +42,16 @@ class MoveManager():
         # Generate the board map
         map = self.board.generate_map([start_square, end_square])
 
-        # Plot the graph and path
-        fig, axs = plt.subplots()
+        # Plot the board
+        if plotting_axs is not None:
+            # Set the path planner background
+            board.plot_background(plotting_axs)
 
-        # Set the path planner background
-        board.plot_background(axs)
+            # Plot the pieces
+            board.plot_board(plotting_axs)
 
-        # Plot the pieces
-        board.plot_board(axs)
+        # Setup a vaiable to hold the capture path
+        capture_path = None
 
         # Check if move is capture
         if self.board.check_capture(best_move):
@@ -65,7 +67,9 @@ class MoveManager():
             # Plan the path
             capture_path = self.astar.calculate_path()
 
-            self.astar.plot_path(axs)
+            # Plot the capture path
+            if plotting_axs is not None:
+                self.astar.plot_path(plotting_axs, board.get_piece_diameter())
 
         # Plan the move path
         map.clear_points()
@@ -76,25 +80,27 @@ class MoveManager():
 
         path = self.astar.calculate_path()
         
+        # Make the move on the board
         board.make_move(best_move)
+        
+        # Plot the graph and the move path
+        if plotting_axs is not None:
+            map.plot_graph(plotting_axs, simplify=True)
+            self.astar.plot_path(plotting_axs, board.get_piece_diameter())
 
-        # Plot the graph and path
-        map.plot_graph(axs, simplify=True)
-        self.astar.plot_path(axs)
-
-        # # Return the path
-        # return path
+        # Return the path
+        return [capture_path, path]
 
 
 if __name__ == "__main__":
     capture_positions = [
-        np.array([400, 400]),
-        np.array([400, 380]),
-        np.array([400, 370]),
-        np.array([400, 360]),
+        np.array([410, 400]),
+        np.array([410, 380]),
+        np.array([410, 370]),
+        np.array([410, 360]),
     ]
 
-    board = PhysicalBoard(400, 400, 20, 3, capture_positions=capture_positions)
+    board = PhysicalBoard(400, 400, 23, 2, capture_positions=capture_positions)
     board.reset()
 
     astar = Astar()
@@ -107,8 +113,13 @@ if __name__ == "__main__":
     # board.make_move("e2e4")
     board.reset("rnbqk2r/pp3ppp/3p1n2/2bQ4/2Pp1p2/5N2/PP2PPPP/RN2KB1R w KQkq - 2 8")
 
-    path = move_manager.respond()
+    fig, ax = plt.subplots()
 
-    path = move_manager.respond()
+    path = move_manager.respond(ax)
+
+    # fig, axs = plt.subplots(2, 5)
+
+    # for i in range(10):
+    #     path = move_manager.respond(axs[int(np.floor(i / 5)), i % 5])
 
     plt.show()

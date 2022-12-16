@@ -75,6 +75,12 @@ class PhysicalBoard():
         """
         return self.board.fen()
 
+    def get_piece_diameter(self):
+        """
+        Get the piece diameter.
+        """
+        return self.piece_diameter
+
     def reset(self, fen=None):
         """
         Reset and clear the board.
@@ -133,8 +139,6 @@ class PhysicalBoard():
         # Get the square index
         square_index = self.square_indicies[square]
 
-        print(square_index)
-
         # Get the square position
         square_position = self.square_positions[square_index[0], square_index[1], :]
 
@@ -185,7 +189,7 @@ class PhysicalBoard():
         # Create a graph from the board map
         return Graph(board_map)
 
-    def plot_background(self, axs):
+    def plot_background(self, ax):
         """
         Plots the background of the board.
 
@@ -202,9 +206,9 @@ class PhysicalBoard():
 
         # Plot the png
         img = Image.open(io.BytesIO(png))
-        axs.imshow(img, extent=[0, self.width, 0, self.length])
+        ax.imshow(img, extent=[0, self.width, 0, self.length])
 
-    def plot_board(self, axs):
+    def plot_board(self, ax):
         """
         Plots the pieces on the board.
     
@@ -234,7 +238,7 @@ class PhysicalBoard():
             y = self.square_positions[board_index[0], board_index[1], 1]
 
             # Plot a circle at the position of the piece
-            axs.add_patch(plt.Circle([x, y], self.piece_diameter / 2, fill=False, color="green"))
+            ax.add_patch(plt.Circle([x, y], self.piece_diameter / 2, fill=False, color="green"))
 
 if __name__ == "__main__":
     capture_positions = [
@@ -254,8 +258,8 @@ if __name__ == "__main__":
 
     print("Map Generated!")
 
-    fig, axs = plt.subplots()
-    graph.plot_graph(axs)
+    fig, ax = plt.subplots()
+    graph.plot_graph(ax)
 
     print(board.square_positions)
 

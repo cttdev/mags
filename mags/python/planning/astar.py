@@ -191,7 +191,7 @@ class Astar:
 
         return path
 
-    def plot_path(self, axs):
+    def plot_path(self, ax, piece_diameter=None):
         if self.path is None:
             print("No path found!")
             return
@@ -216,16 +216,21 @@ class Astar:
                     theta1 = np.rad2deg(min(arc_start, arc_end))
                     theta2 = np.rad2deg(max(arc_start, arc_end))
 
-                    axs.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=theta1, theta2=theta2, color="orange", linewidth=4))
+                    ax.add_patch(Arc(arc_center, 2 * arc_radius, 2 * arc_radius, theta1=theta1, theta2=theta2, color="orange", linewidth=4))
                 else:
                     # Surfing Edge
-                    axs.plot([node.get_position()[0], next_node.get_position()[0]], [node.get_position()[1], next_node.get_position()[1]], "orange", linewidth=4)
-
+                    ax.plot([node.get_position()[0], next_node.get_position()[0]], [node.get_position()[1], next_node.get_position()[1]], "orange", linewidth=4)
             
+            # Plot the piece at the node
+            if piece_diameter is not None:
+                circle = plt.Circle(node.get_position(), piece_diameter / 2, fill=False, color="orange")
+                ax.add_patch(circle)
+            
+            # Plot the star and end points in different colors
             if node == self.start:
-                axs.plot(node.get_position()[0], node.get_position()[1], color="lightcoral", marker="o")
+                ax.plot(node.get_position()[0], node.get_position()[1], color="lightcoral", marker="o")
             elif node == self.goal:
-                axs.plot(node.get_position()[0], node.get_position()[1], color="mediumpurple", marker="o")
+                ax.plot(node.get_position()[0], node.get_position()[1], color="mediumpurple", marker="o")
 
 
 if __name__ == "__main__":
@@ -273,12 +278,12 @@ if __name__ == "__main__":
     print(astar.calculate_path())
 
     # Setup plotting
-    fig, axs = plt.subplots()
+    fig, ax = plt.subplots()
 
     # Plot graph
-    graph.plot_graph(axs, simplify=False)
+    graph.plot_graph(ax, simplify=False)
 
     # Plot path
-    astar.plot_path(axs)
+    astar.plot_path(ax)
     
     plt.show()
