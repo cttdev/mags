@@ -85,7 +85,7 @@ class MoveManager():
         
         # Plot the graph and the move path
         if plotting_axs is not None:
-            map.plot_graph(plotting_axs, simplify=True)
+            map.plot_graph(plotting_axs, simplify=False)
             self.astar.plot_path(plotting_axs, board.get_piece_diameter())
 
         # Return the path
@@ -113,13 +113,13 @@ if __name__ == "__main__":
     # board.make_move("e2e4")
     board.reset("rnbqk2r/pp3ppp/3p1n2/2bQ4/2Pp1p2/5N2/PP2PPPP/RN2KB1R w KQkq - 2 8")
 
-    # fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
-    # path = move_manager.respond(ax)
+    path = move_manager.respond(ax)
 
-    fig, axs = plt.subplots(2, 5)
+    # fig, axs = plt.subplots(2, 5)
 
-    for i in range(10):
-        path = move_manager.respond(axs[int(np.floor(i / 5)), i % 5])
+    # for i in range(10):
+    #     path = move_manager.respond(axs[int(np.floor(i / 5)), i % 5])
 
     plt.show()
