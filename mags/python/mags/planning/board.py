@@ -13,7 +13,7 @@ from .graph import Circle, Graph
 class PhysicalBoard():
     """
     A class to represent a chess board for move making.
-    NOTE: All diemensions are in mm.
+    NOTE: All dimensions are in mm.
 
     Board Coordinate System: BCS -> [0, 8]:[0, 8]
     Chess Coordinate System: CCS -> [a, h]:[1, 8]
@@ -25,27 +25,27 @@ class PhysicalBoard():
     0,0 -----> x [8, 0] (h, 1)
     """
 
-    def __init__(self, length, width, piece_diameter, clerance, capture_positions):
+    def __init__(self, length, width, piece_diameter, clearance, capture_positions):
         self.board = chess.Board()
 
-        # Store the board diemensions and piece diameter
+        # Store the board dimensions and piece diameter
         self.length = length
         self.width = width
 
         self.piece_diameter = piece_diameter
 
-        # Initialize the caputre positions
+        # Initialize the capture positions
         self.capture_positions = capture_positions
         self.open_capture_positions = capture_positions.copy()
 
-        # Calculate the piece clerance radius
-        # The is the raidus of the circle around the piece used for path finding
+        # Calculate the piece clearance radius
+        # The is the radius of the circle around the piece used for path finding
         piece_radius = piece_diameter / 2.0
-        self.clerance_radius = piece_radius * 2 + clerance
+        self.clearance_radius = piece_radius * 2 + clearance
 
         # Square mapping
         # The mapping from the board coordinate system to the square positions
-        # The square positions are stored in a numpy array with thier BCS index and a dictionary is used to map thier CCS index to their BCS index
+        # The square positions are stored in a numpy array with their BCS index and a dictionary is used to map their CCS index to their BCS index
         # Generate a numpy array with the positions of all the squares
         self.square_positions = np.zeros((8, 8, 2))
         self.square_indicies = {}
@@ -169,7 +169,7 @@ class PhysicalBoard():
             # 0  1  2  3  4  5  6  7
 
             # Get x and y position of the piece on the board
-            board_index = np.unravel_index(position, (8, 8)) #  Retrns a tuple of (row, col)
+            board_index = np.unravel_index(position, (8, 8)) # Returns a tuple of (row, col)
 
             # We need to reverse the unraveled index to get the BCS index
             # row = y
@@ -183,8 +183,8 @@ class PhysicalBoard():
             x = self.square_positions[board_index[0], board_index[1], 0]
             y = self.square_positions[board_index[0], board_index[1], 1]
 
-            # Add the piece cricle to the board map
-            board_map.append(Circle(self.clerance_radius, np.array([x, y])))
+            # Add the piece circle to the board map
+            board_map.append(Circle(self.clearance_radius, np.array([x, y])))
 
         # Create a graph from the board map
         return Graph(board_map)
@@ -226,7 +226,7 @@ class PhysicalBoard():
             # 0  1  2  3  4  5  6  7
 
             # Get x and y position of the piece on the board
-            board_index = np.unravel_index(position, (8, 8)) #  Retrns a tuple of (row, col)
+            board_index = np.unravel_index(position, (8, 8)) # Returns a tuple of (row, col)
 
             # We need to reverse the unraveled index to get the BCS index
             # row = y
