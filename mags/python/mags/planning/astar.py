@@ -1,10 +1,10 @@
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
-from planning.graph import Circle, Graph, Node
+from .graph import Circle, Graph, Node
 from queue import PriorityQueue
 
-from planning.utils import dist, v2v_angle
+from .utils import dist, v2v_angle
 
 
 class Astar:

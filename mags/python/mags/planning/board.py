@@ -7,7 +7,7 @@ from PIL import Image
 import io
 import numpy as np
 
-from planning.graph import Circle, Graph
+from .graph import Circle, Graph
 
 
 class PhysicalBoard():

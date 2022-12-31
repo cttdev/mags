@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
 
-from planning.utils import cross, dist, transform_polar, v2v_angle, zero_to_2pi
+from .utils import cross, dist, transform_polar, v2v_angle, zero_to_2pi
 
 
 class Circle:

@@ -5,7 +5,7 @@ from sassutils.wsgi import SassMiddleware
 import chess
 from stockfish import Stockfish
 
-app = Flask(__name__, static_folder="../static", template_folder="../templates")
+app = Flask(__name__, static_folder="../../static", template_folder="../../templates")
 app.debug = True
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -13,7 +13,7 @@ socketio = SocketIO(app)
 
 # Make app use sass sytlesheet
 app.wsgi_app = SassMiddleware(app.wsgi_app, {
-    "mags": ("../static/sass", "../static/css", "/static/css", False)
+    "mags": ("../../static/sass", "../../static/css", "/static/css", False)
 })
 
 board = chess.Board()

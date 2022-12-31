@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+
 from planning.astar import Astar
 from planning.board import PhysicalBoard
 
