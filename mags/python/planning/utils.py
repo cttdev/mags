@@ -69,7 +69,7 @@ def cross(vec1, vec2):
 
 def zero_to_2pi(angle):
     """
-    Converts and angle in the range [-pi, pi] to the range [0, 2pi].
+    Converts an angle in the range [-pi, pi] to the range [0, 2pi].
     
     """
 

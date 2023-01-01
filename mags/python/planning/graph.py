@@ -59,7 +59,7 @@ class Node:
 class Edge(UserList):
     """
     Class that represents an edge in the graph. This is a line segment or arc between two nodes.
-    NOTE: Surfing edges are line segments, while hugging edges are arcs.
+    NOTE: Surfing edges are line segments, while hugging edges are arcs. Tangent edges are tangent line segments from a point to a circle.
     """
 
     def __init__(self, first, second, is_surfing):
@@ -94,7 +94,7 @@ class Graph:
 
         self.points = []
         self.point_circles = []
-        self.tanget_edges = [] # Store the tangent edges seperately to allow of easy modification of the graph
+        self.tangent_edges = [] # Store the tangent edges seperately to allow easy modification of the graph
 
         # Add the circles to the graph
         for circle in circles:
@@ -102,11 +102,11 @@ class Graph:
                 if circle == other_circle:
                     continue
                 
-                # Add internal and external bitangents btetween circles
-                self.add_internal_bitangets(other_circle, circle)
-                self.add_external_bitangets(other_circle, circle)
+                # Add internal and external bitangents between circles
+                self.add_internal_bitangents(other_circle, circle)
+                self.add_external_bitangents(other_circle, circle)
 
-        # Clean up the sufing edge intersections
+        # Clean up the surfing edge intersections
         self.clean_surfing_edges()
 
         # Add hugging edges
@@ -122,7 +122,7 @@ class Graph:
         return self.circles
     
     def get_edges(self):
-        return self.surfing_edges + self.tanget_edges + self.hugging_edges
+        return self.surfing_edges + self.tangent_edges + self.hugging_edges
 
     def clear(self):
         self.nodes.clear()
@@ -144,7 +144,7 @@ class Graph:
 
         self.points.clear()
         self.point_circles.clear()
-        self.tanget_edges.clear()
+        self.tangent_edges.clear()
 
     def prepare_edge_optimization(self):
         """
@@ -162,13 +162,13 @@ class Graph:
         """
         neighbors = []
 
-        # Get the indicies of the edges that contain the node
-        node_indicies = np.where(self.np_edges == node)
+        # Get the indices of the edges that contain the node
+        node_indices = np.where(self.np_edges == node)
 
         # Get the neighbors
-        for i in range(len(node_indicies[0])):
-            node_row = node_indicies[0][i]
-            node_col = node_indicies[1][i]
+        for i in range(len(node_indices[0])):
+            node_row = node_indices[0][i]
+            node_col = node_indices[1][i]
             
             # If the node is the first node in the edge, the second node is the neighbor
             if node_col == 0:
@@ -215,12 +215,12 @@ class Graph:
         self.surfing_edges = new_surfing_edges
         
         # Clean tangent edges
-        new_tangent_edges = self.tanget_edges.copy()
-        for edge in self.tanget_edges:
+        new_tangent_edges = self.tangent_edges.copy()
+        for edge in self.tangent_edges:
             if self.check_intersection(edge):
                 new_tangent_edges.remove(edge)
         
-        self.tanget_edges = new_tangent_edges
+        self.tangent_edges = new_tangent_edges
 
         # # Remove nodes that are no longer connected to any other nodes
         # self.remove_unconnected_nodes() # TODO: Very slow
@@ -259,7 +259,7 @@ class Graph:
 
     def add_point(self, node):
         """
-        Inserts a point (circle with raidus 0) into the graph.
+        Inserts a point (circle with radius 0) into the graph.
         NOTE: This updates the surfing and hugging edges.
 
         """
@@ -270,7 +270,7 @@ class Graph:
         # Add the node and its circle to the graph
         self.add_node(node)
 
-        # Add internal bigtangents to the point
+        # Add internal bitangents to the point
         for other_circle in self.circles.values():
             if other_circle == node.get_circle():
                 continue
@@ -315,7 +315,7 @@ class Graph:
                     return
             
             # Add the edge
-            self.tanget_edges.append(edge)
+            self.tangent_edges.append(edge)
             return
 
     
@@ -326,7 +326,7 @@ class Graph:
         # Calclate the AB and BA angles
         angle_BA = v2v_angle(B, A)
 
-        # Calculate the internal bitanget points: E and F
+        # Calculate the internal bitangent points: E and F
         # Nodes on circle : E and F
         E = transform_polar(B, r, angle_BA - theta)
         F = transform_polar(B, r, angle_BA + theta)
@@ -340,11 +340,11 @@ class Graph:
         self.add_node(F_node)
 
         # Generate the internal bitangent edges
-        self.tanget_edges.append(Edge(point_node, E_node, True))
-        self.tanget_edges.append(Edge(point_node, F_node, True))
+        self.tangent_edges.append(Edge(point_node, E_node, True))
+        self.tangent_edges.append(Edge(point_node, F_node, True))
         
 
-    def add_internal_bitangets(self, circle1, circle2):
+    def add_internal_bitangents(self, circle1, circle2):
         """
         Generates the internal bitangents between two circles.
 
@@ -392,7 +392,7 @@ class Graph:
         self.add_edge(Edge(D_node, E_node, True))
         self.add_edge(Edge(C_node, F_node, True))
 
-    def add_external_bitangets(self, circle1, circle2):
+    def add_external_bitangents(self, circle1, circle2):
         """
         Generates the external bitangents between two circles.
 
@@ -451,6 +451,7 @@ class Graph:
 
         # Sort the nodes by circle
         nodes_by_circle = {}
+        # Make a dictionary where each circle is a key for a list of the nodes that are on that circle
         for node in self.nodes.values():
             circle = node.get_circle()
             if circle.get_r() == 0:
@@ -507,7 +508,7 @@ class Graph:
         if not simplify:
             # Plot the surfing edge lines
             # count = 0
-            for edge in self.surfing_edges + self.tanget_edges:
+            for edge in self.surfing_edges + self.tangent_edges:
                 first = edge.get_first()
                 second = edge.get_second()
 
@@ -532,7 +533,7 @@ class Graph:
                 arc_start = zero_to_2pi(arc_start)
                 arc_end = zero_to_2pi(arc_end)
 
-                # Determine the start and end points for plotting and conver the angles to degrees
+                # Determine the start and end points for plotting and convert the angles to degrees
                 theta1 = np.rad2deg(min(arc_start, arc_end))
                 theta2 = np.rad2deg(max(arc_start, arc_end))
 
@@ -583,7 +584,7 @@ class Graph:
         # If the dot product is negative, the point is on the other side of the line segment
         # We can do the same for the end of the line segment taking the dot product of a vector from the end to the center of the circle and a vector from the end to the start
         # If the dot product is negative, the point is on the other side of the line segment
-        # If either dot product is negative, we set the distannce equal to the distance between the circle center and the closest point on the line segment (either the start or the end)
+        # If either dot product is negative, we set the distance equal to the distance between the circle center and the closest point on the line segment (either the start or the end)
         
         # Check if circle is over the edge:
         # If np.dot(center - pos1, pos2 - pos1) < 0 then d = dist(center, pos1)
@@ -613,8 +614,8 @@ if __name__ == "__main__":
     # circle2 = Circle(1, np.array([-3, -3]))
 
     # graph = Graph()
-    # graph.add_internal_bitangets(circle1, circle2)
-    # graph.add_external_bitangets(circle1, circle2)
+    # graph.add_internal_bitangents(circle1, circle2)
+    # graph.add_external_bitangents(circle1, circle2)
 
     # fig, ax = plt.subplots()
     # graph.plot_graph(ax)
@@ -636,8 +637,8 @@ if __name__ == "__main__":
 
             # Add internal and external bitangents between all circles
             for circle in circles:
-                graph.add_internal_bitangets(i_circle, circle)
-                graph.add_external_bitangets(i_circle, circle)
+                graph.add_internal_bitangents(i_circle, circle)
+                graph.add_external_bitangents(i_circle, circle)
 
             # Store circle
             circles.append(i_circle)

@@ -31,7 +31,7 @@ class MoveManager():
         best_move = self.stockfish.get_best_move()
 
         # Get the start and end squares
-        # Read the UCI string from the start to account for promtion
+        # Read the UCI string from the start to account for promotion
         start_square = best_move[:2]
         end_square = best_move[2:4]
 

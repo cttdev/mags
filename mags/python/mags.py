@@ -11,7 +11,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 socketio = SocketIO(app)
 
-# Make app use sass sytlesheet
+# Make app use sass stylesheet
 app.wsgi_app = SassMiddleware(app.wsgi_app, {
     "mags": ("../static/sass", "../static/css", "/static/css", False)
 })

@@ -79,7 +79,7 @@ class Astar:
             #  a dot b = |a| * |b| * cos(theta)
             # The angle between the vectors is:
             #  theta = arccos(a dot b / (|a| * |b|))
-            # The range of arccos is [0, pi] so it is guaganreted to give us the smallest, positive angle
+            # The range of arccos is [0, pi] so it is guaranteed to give us the smallest, positive angle
 
             # Generate the vectors
             a = first.get_position() - arc_center
@@ -151,7 +151,7 @@ class Astar:
             neighbors = self.graph.get_neighbors(current)
 
             for neighbor_node, neighbor_edge in neighbors:
-                # Get the cost of the neightbor
+                # Get the cost of the neighbor
                 neighbor_cost = self.cost[current] + self.get_edge_cost(neighbor_edge)
 
                 # If the neighbor has not been explored or the new cost is less than the old cost
@@ -212,7 +212,7 @@ class Astar:
                     arc_start = v2v_angle(arc_center, node.get_position())
                     arc_end = v2v_angle(arc_center, next_node.get_position())
 
-                    # Determine the start and end points for plotting and conver the angles to degrees
+                    # Determine the start and end points for plotting and convert the angles to degrees
                     theta1 = np.rad2deg(min(arc_start, arc_end))
                     theta2 = np.rad2deg(max(arc_start, arc_end))
 
@@ -226,7 +226,7 @@ class Astar:
                 circle = plt.Circle(node.get_position(), piece_diameter / 2, fill=False, color="orange")
                 ax.add_patch(circle)
             
-            # Plot the star and end points in different colors
+            # Plot the start and end points in different colors
             if node == self.start:
                 ax.plot(node.get_position()[0], node.get_position()[1], color="lightcoral", marker="o")
             elif node == self.goal:
@@ -242,8 +242,8 @@ if __name__ == "__main__":
     # graph = Graph()
 
     # # Add circles to graph
-    # graph.add_internal_bitangets(circle1, circle2)
-    # graph.add_external_bitangets(circle1, circle2)
+    # graph.add_internal_bitangents(circle1, circle2)
+    # graph.add_external_bitangents(circle1, circle2)
 
     # Testing Grid of Circles
     graph = Graph([])
@@ -262,8 +262,8 @@ if __name__ == "__main__":
 
             # Add internal and external bitangents between all circles
             for circle in circles:
-                graph.add_internal_bitangets(i_circle, circle)
-                graph.add_external_bitangets(i_circle, circle)
+                graph.add_internal_bitangents(i_circle, circle)
+                graph.add_external_bitangents(i_circle, circle)
 
             # Store circle
             circles.append(i_circle)
