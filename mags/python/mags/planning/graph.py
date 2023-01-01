@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
 
-from planning.utils import cross, dist, transform_polar, v2v_angle, zero_to_2pi
+from .utils import cross, dist, transform_polar, v2v_angle, zero_to_2pi
 
 
 class Circle:
@@ -26,7 +26,7 @@ class Circle:
 
 class Node:
     """
-    Class that represents a node in the graph. Stores the circle the node is on and its (x, y) postion.
+    Class that represents a node in the graph. Stores the circle the node is on and its (x, y) position.
 
     """
 
@@ -323,7 +323,7 @@ class Graph:
         d = dist(A, B)
         theta = np.arccos(r / d)
 
-        # Calclate the AB and BA angles
+        # Calculate the AB and BA angles
         angle_BA = v2v_angle(B, A)
 
         # Calculate the internal bitangent points: E and F
@@ -361,11 +361,11 @@ class Graph:
         d = dist(A, B)
         theta = np.arccos((r1 + r2) / d)
 
-        # Calclate the AB and BA angles
+        # Calculate the AB and BA angles
         angle_AB = v2v_angle(A, B)
         angle_BA = v2v_angle(B, A)
 
-        # Calculate the internal bitanget points: C, D, E and F
+        # Calculate the internal bitangent points: C, D, E and F
         # Nodes on circle 1: C and D
         C = transform_polar(A, r1, angle_AB + theta)
         D = transform_polar(A, r1, angle_AB - theta)
@@ -409,11 +409,11 @@ class Graph:
         d = dist(A, B)
         theta = np.arccos(abs(r1 - r2) / d)
 
-        # Calclate the AB and BA angles
+        # Calculate the AB and BA angles
         angle_AB = v2v_angle(A, B)
         angle_BA = v2v_angle(B, A)
 
-        # Calculate the internal bitanget points: C, D, E and F
+        # Calculate the internal bitangent points: C, D, E and F
         # Nodes on circle 1: C and D
         C = transform_polar(A, r1, angle_AB + theta)
         D = transform_polar(A, r1, angle_AB - theta)
