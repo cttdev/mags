@@ -59,7 +59,7 @@ class Node:
 class Edge(UserList):
     """
     Class that represents an edge in the graph. This is a line segment or arc between two nodes.
-    NOTE: Surfing edges are line segments, while hugging edges are arcs. Tangent edges are tangent line segments from a point to a circle.
+    NOTE: Surfing edges are line segments, while hugging edges are arcs.
     """
 
     def __init__(self, first, second, is_surfing):

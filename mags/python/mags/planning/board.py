@@ -44,8 +44,7 @@ class PhysicalBoard():
         self.clearance_radius = piece_radius * 2 + clearance
 
         # Square mapping
-        # The mapping from the board coordinate system to the square positions
-        # The square positions are stored in a numpy array with their BCS index 
+        # The mapping from the board coordinate system to the square positions the square positions are stored in a numpy array with their BCS index 
         # and a dictionary is used to map their CCS index to their BCS index
         
         # Generate a numpy array with the positions of all the squares
