@@ -94,7 +94,7 @@ class Graph:
 
         self.points = []
         self.point_circles = []
-        self.tangent_edges = [] # Store the tangent edges seperately to allow easy modification of the graph
+        self.tangent_edges = []  # Store the tangent edges separately to allow easy modification of the graph
 
         # Add the circles to the graph
         for circle in circles:
