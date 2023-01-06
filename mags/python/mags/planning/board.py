@@ -39,7 +39,7 @@ class PhysicalBoard():
         self.open_capture_positions = capture_positions.copy()
 
         # Calculate the piece clearance radius
-        # This is the raidus of the circle around the piece used for path finding
+        # This is the radius of the circle around the piece used for path finding
         piece_radius = piece_diameter / 2.0
         self.clearance_radius = piece_radius * 2 + clearance
 
@@ -170,7 +170,7 @@ class PhysicalBoard():
             # 0  1  2  3  4  5  6  7
 
             # Get x and y position of the piece on the board
-            board_index = np.unravel_index(position, (8, 8)) #  Returns a tuple of (row, col)
+            board_index = np.unravel_index(position, (8, 8))  # Returns a tuple of (row, col)
 
             # We need to reverse the unraveled index to get the BCS index
             # row = y
