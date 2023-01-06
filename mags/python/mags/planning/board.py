@@ -171,7 +171,7 @@ class PhysicalBoard():
             # 0  1  2  3  4  5  6  7
 
             # Get x and y position of the piece on the board
-            board_index = np.unravel_index(position, (8, 8)) #  Returns a tuple of (row, col)
+            board_index = np.unravel_index(position, (8, 8))  # Returns a tuple of (row, col)
 
             # We need to reverse the unraveled index to get the BCS index
             # row = y
