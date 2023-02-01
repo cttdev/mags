@@ -255,11 +255,13 @@ if __name__ == "__main__":
     board.make_move("d2d4")
 
     graph = board.generate_map()
+    graph.prepare()
 
     print("Map Generated!")
 
     fig, ax = plt.subplots()
     graph.plot_graph(ax)
+    board.plot_background(ax)
 
     print(board.square_positions)
 

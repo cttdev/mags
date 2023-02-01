@@ -86,7 +86,7 @@ class MoveManager():
         
         # Plot the graph and the move path
         if plotting_axs is not None:
-            map.plot_graph(plotting_axs, simplify=False)
+            map.plot_graph(plotting_axs, simplify=True)
             self.astar.plot_path(plotting_axs, board.get_piece_diameter())
 
         # Return the path
