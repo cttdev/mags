@@ -128,9 +128,10 @@ class PhysicalBoard():
 
         # Check if the move is legal or not
         if not self.board.is_legal(move):
-            return
+            return False
         else:
             self.board.push(move)
+            return True
 
     def get_square_position(self, square):
         """
@@ -260,7 +261,7 @@ if __name__ == "__main__":
     print("Map Generated!")
 
     fig, ax = plt.subplots()
-    graph.plot_graph(ax)
+    graph.plot_graph(ax, False)
     board.plot_background(ax)
 
     print(board.square_positions)

@@ -233,9 +233,11 @@ class Graph:
                 new_tangent_edges.remove(edge)
         
         self.tangent_edges = new_tangent_edges
+        
+        self.prepare_edge_optimization()
 
-        # # Remove nodes that are no longer connected to any other nodes
-        # self.remove_unconnected_nodes() # TODO: Very slow
+        # Remove nodes that are no longer connected to any other nodes
+        self.remove_unconnected_nodes() # TODO: Very slow
 
     def remove_unconnected_nodes(self):
         """

@@ -17,6 +17,7 @@ setup(
         "chess",
         "stockfish",
         "cairosvg",
+        "jsonrpc",
         "pybind11[global]"
     ],
 )
