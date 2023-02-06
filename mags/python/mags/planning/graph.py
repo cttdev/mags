@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
 
-from .utils import cross, dist, transform_polar, v2v_angle, zero_to_2pi
+from .utils import cross, dist, dot, transform_polar, v2v_angle, zero_to_2pi
 
 
 class Circle:
@@ -106,6 +106,14 @@ class Graph:
                 self.add_internal_bitangents(other_circle, circle)
                 self.add_external_bitangents(other_circle, circle)
 
+    def prepare(self):
+        """
+        Prepares a graph for searching
+
+        NOTE: This should only be called once after the graph is fully constructed.
+
+        """
+
         # Clean up the surfing edge intersections
         self.clean_surfing_edges()
 
@@ -160,6 +168,10 @@ class Graph:
         Returns a list of tuples of the form (node, edge).
 
         """
+        # Check if graph has been prepared
+        if not hasattr(self, 'np_edges'):
+            raise Exception('Graph has not been prepared for searching. Call prepare() before searching!')
+
         neighbors = []
 
         # Get the indices of the edges that contain the node
@@ -221,9 +233,11 @@ class Graph:
                 new_tangent_edges.remove(edge)
         
         self.tangent_edges = new_tangent_edges
+        
+        self.prepare_edge_optimization()
 
-        # # Remove nodes that are no longer connected to any other nodes
-        # self.remove_unconnected_nodes() # TODO: Very slow
+        # Remove nodes that are no longer connected to any other nodes
+        self.remove_unconnected_nodes() # TODO: Very slow
 
     def remove_unconnected_nodes(self):
         """
@@ -277,13 +291,6 @@ class Graph:
                 
             # We only need to add internal bitangents for points
             self.add_tangents(node, other_circle)
-
-        # Recalculate the hugging edges
-        self.clean_surfing_edges()
-        self.add_hugging_edges() # TODO: Optimize this
-
-        # Edge Optimization
-        self.prepare_edge_optimization()
 
         return node
 
@@ -589,9 +596,9 @@ class Graph:
         # Check if circle is over the edge:
         # If np.dot(center - pos1, pos2 - pos1) < 0 then d = dist(center, pos1)
         # If np.dot(center - pos2, pos1 - pos2) < 0 then d = dist(center, pos2)
-        if (np.dot(center - pos1, pos2 - pos1) < 0):
+        if (dot(center - pos1, pos2 - pos1) < 0):
             d = dist(center, pos1)
-        elif (np.dot(center - pos2, pos1 - pos2) < 0):
+        elif (dot(center - pos2, pos1 - pos2) < 0):
             d = dist(center, pos2)
         else:
             # Check the distance from the circle to the edge

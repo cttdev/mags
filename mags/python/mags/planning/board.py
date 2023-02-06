@@ -67,8 +67,8 @@ class PhysicalBoard():
                 self.square_positions[i, j, 0] = x_positions[i]
                 self.square_positions[i, j, 1] = y_positions[j]
                 
-                # Put the CCS to BCS mapping in the square indices dictionary
-                self.square_indices[string.ascii_lowercase[i] + str(j + 1)] = (i, j)
+                # Put the CCS to BCS mapping in the square indicies dictionary # TODO: Can be static.
+                self.square_indicies[string.ascii_lowercase[i] + str(j + 1)] = (i, j)
 
     def get_fen(self):
         """
@@ -128,10 +128,11 @@ class PhysicalBoard():
         move = chess.Move.from_uci(move)
 
         # Check if the move is legal or not
-        if self.board.is_legal(move):
-            self.board.push(move)
+        if not self.board.is_legal(move):
+            return False
         else:
-            return
+            self.board.push(move)
+            return True
 
     def get_square_position(self, square):
         """
@@ -241,6 +242,47 @@ class PhysicalBoard():
             # Plot a circle at the position of the piece
             ax.add_patch(plt.Circle([x, y], self.piece_diameter / 2, fill=False, color="green"))
 
+    def get_binary_board(self):
+        """
+        Get a binary board representation.
+
+        """
+        # Create a binary board
+        binary_board = np.zeros((8, 8))
+
+        # Get the board map from python chess
+        piece_map = self.board.piece_map()
+
+        # Loop through the board map
+        for position, _ in piece_map.items():
+            # Piece map is labeled with a row-major index
+            #
+            # 56 57 58 59 60 61 62 63
+            # ...
+            # 0  1  2  3  4  5  6  7
+
+            # Get x and y position of the piece on the board
+            board_index = np.unravel_index(position, (8, 8)) # Returns a tuple of (row, col)
+
+            # We need to reverse the unraveled index to get the BCS index
+            # row = y
+            # col = x
+            board_index = (board_index[1], board_index[0])
+
+            # Set the binary board position to 1
+            binary_board[board_index[0], board_index[1]] = 1
+
+        return binary_board
+
+    def bcs_2_ccs(self, bcs):
+        """
+        Convert a BCS coordinate to a CCS coordinate.
+
+        """
+        i, j = bcs
+
+        return self.square_indicies.index((i, j))
+
 if __name__ == "__main__":
     capture_positions = [
         np.array([450, 450]),
@@ -256,11 +298,13 @@ if __name__ == "__main__":
     board.make_move("d2d4")
 
     graph = board.generate_map()
+    graph.prepare()
 
     print("Map Generated!")
 
     fig, ax = plt.subplots()
-    graph.plot_graph(ax)
+    graph.plot_graph(ax, False)
+    board.plot_background(ax)
 
     print(board.square_positions)
 

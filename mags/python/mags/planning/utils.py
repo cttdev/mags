@@ -59,6 +59,14 @@ def transform_polar(vec, r, theta):
 
     return np.array([x_new, y_new])
 
+def dot(vec1, vec2):
+    """
+    Returns the magnitude of the dot product of two vectors in R2.
+    
+    """
+
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1]
+
 def cross(vec1, vec2):
     """
     Returns the magnitude of the cross product of two vectors in R2.
