@@ -18,6 +18,8 @@ setup(
         "stockfish",
         "cairosvg",
         "jsonrpc",
+        "simple-websocket",
+        "gpiozero",
         "pybind11[global]"
     ],
 )
