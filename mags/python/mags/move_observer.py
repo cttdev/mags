@@ -77,6 +77,14 @@ class MoveObserver:
         else:
             return False
 
+    def check_lifted(self, previous_binary_board):
+        # Find the difference between board states
+        difference = self.binary_board - previous_binary_board
+        if np.count_nonzero(difference == -1) == 1: # If a piece was removed
+            return (np.argwhere(difference == 1)) # Return the BCS coordinates of the removed piece
+        else:
+            return False
+
     def verify_board_state(self):
         # Sample the real board state
         self.sample_board()
@@ -93,9 +101,9 @@ class MoveObserver:
         # Find the difference between the previous board state and the current board state
         difference = self.binary_board - previous_binary_board
 
-        # When we subtract the two boards the start of the move will be when the board goes from 1 -> 0 (0 - 1 = -1) and the end of the move will be when the board goes from 0 -> 1 (1 - 0 = 1)
-        move_start = np.argwhere(difference == -1)
-        move_end = np.argwhere(difference == 1)
+        # When we subtract the two boards the start of the move will be when the board goes from 0 -> 1 (1 - 0 = 1) and the end of the move will be when the board goes from 1 -> 0 (0 - 1 = -1)
+        move_start = np.argwhere(difference == 1)
+        move_end = np.argwhere(difference == -1)
 
         # Convert the move coordinates to CCS
         move_start_ccs = self.board.bcs_2_ccs(move_start)
@@ -117,11 +125,12 @@ class MoveObserver:
         while True:
             self.sample_board()
 
-            # Check if the real board state is the same as the internally stored board
-            if not self.check_board_state(stored_binary_board):
-                # If the board state is different, a move has started, so break out of the loop
-                previous_binary_board = self.binary_board
-                break
+            # Check if a piece has been lifted
+            if self.check_lifted(stored_binary_board):
+                if self.check_lifted(stored_binary_board): #If only one piece was lifted
+                    start_square = self.check_lifted(stored_binary_board) #BCS coordinates of square piece was lifted from
+                    starting_binary_board = self.binary_board #store the starting position of the move
+                    break
                 
         # Setup the timer threading
         time_out_condition = Event()
@@ -130,6 +139,11 @@ class MoveObserver:
         # Start the timer
         time_out_timer.start()
 
+        # This board gets updated when the board changes (i.e. the player is sliding their piece)
+        previous_binary_board = np.copy(stored_binary_board)
+
+        capture_square = False
+
         # To detect the end of a move we constantly compare the current board state to the previous board state and once they
         # are the same for a specified settling time, we can assume that the move has ended
         while not time_out_condition.is_set():
@@ -137,6 +151,9 @@ class MoveObserver:
 
             # Check if the real board state is the same as the previous board state
             if not self.check_board_state(previous_binary_board):
+                # If a second piece is lifted, the move is a capture, so we store the BCS coordinates of the removed piece
+                capture_square = self.check_lifted(starting_binary_board)
+
                 # If the board state isn't the same as the previous board state, a move is still being made, so reset the timer
                 time_out_timer.cancel()
                 time_out_timer.start()
@@ -145,8 +162,12 @@ class MoveObserver:
                 previous_binary_board = self.binary_board
 
         # Once we exit the loop, we are sure a move has ended
+
         # Extract the move by looking at the difference between the stored board state and the current board state
-        return self.extract_move(stored_binary_board)
+        if capture_square:
+            return self.board.bcs_2_ccs(start_square) + self.board.bcs_2_ccs(capture_square)
+        else:
+            return self.extract_move(stored_binary_board)
 
     class ObservationStatus(Enum):
         BOARD_MATCH_ERROR = 1
