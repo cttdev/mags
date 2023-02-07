@@ -93,9 +93,9 @@ class MoveObserver:
         # Find the difference between the previous board state and the current board state
         difference = self.binary_board - previous_binary_board
 
-        # When we subtract the two boards the start of the move will be when the board goes from 0 -> 1 (1 - 0 = 1) and the end of the move will be when the board goes from 1 -> 0 (0 - 1 = -1)
-        move_start = np.argwhere(difference == 1)
-        move_end = np.argwhere(difference == -1)
+        # When we subtract the two boards the start of the move will be when the board goes from 1 -> 0 (0 - 1 = -1) and the end of the move will be when the board goes from 0 -> 1 (1 - 0 = 1)
+        move_start = np.argwhere(difference == -1)
+        move_end = np.argwhere(difference == 1)
 
         # Convert the move coordinates to CCS
         move_start_ccs = self.board.bcs_2_ccs(move_start)
