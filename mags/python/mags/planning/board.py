@@ -39,16 +39,17 @@ class PhysicalBoard():
         self.open_capture_positions = capture_positions.copy()
 
         # Calculate the piece clearance radius
-        # The is the radius of the circle around the piece used for path finding
+        # This is the radius of the circle around the piece used for path finding
         piece_radius = piece_diameter / 2.0
         self.clearance_radius = piece_radius * 2 + clearance
 
         # Square mapping
-        # The mapping from the board coordinate system to the square positions
-        # The square positions are stored in a numpy array with their BCS index and a dictionary is used to map their CCS index to their BCS index
+        # The mapping from the board coordinate system to the square positions the square positions are stored in a numpy array with their BCS index 
+        # and a dictionary is used to map their CCS index to their BCS index
+        
         # Generate a numpy array with the positions of all the squares
         self.square_positions = np.zeros((8, 8, 2))
-        self.square_indicies = {}
+        self.square_indices = {}
 
         square_width = width / 8.0
         square_length = length / 8.0
@@ -138,7 +139,7 @@ class PhysicalBoard():
         Get the position of a UCI square on the board.
         """
         # Get the square index
-        square_index = self.square_indicies[square]
+        square_index = self.square_indices[square]
 
         # Get the square position
         square_position = self.square_positions[square_index[0], square_index[1], :]
@@ -156,10 +157,10 @@ class PhysicalBoard():
         # Create a list to store the board map
         board_map = []
 
-        # Generate the excluded squares indicies in BCS
-        excluded_squares_indicies = []
+        # Generate the excluded squares indices in BCS
+        excluded_squares_indices = []
         for square in excluded_squares:
-            excluded_squares_indicies.append(self.square_indicies[square])
+            excluded_squares_indices.append(self.square_indices[square])
         
         # Loop through the board map
         for position, _ in piece_map.items():
@@ -170,14 +171,14 @@ class PhysicalBoard():
             # 0  1  2  3  4  5  6  7
 
             # Get x and y position of the piece on the board
-            board_index = np.unravel_index(position, (8, 8)) # Returns a tuple of (row, col)
+            board_index = np.unravel_index(position, (8, 8))  # Returns a tuple of (row, col)
 
             # We need to reverse the unraveled index to get the BCS index
             # row = y
             # col = x
             board_index = (board_index[1], board_index[0])
 
-            if board_index in excluded_squares_indicies:
+            if board_index in excluded_squares_indices:
                 continue
             
             # Get the x and y position of the piece on the board
@@ -193,7 +194,7 @@ class PhysicalBoard():
     def plot_background(self, ax):
         """
         Plots the background of the board.
-
+        
         """
 
         # Render chess board svg

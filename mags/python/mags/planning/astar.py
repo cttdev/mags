@@ -229,7 +229,7 @@ class Astar:
                 circle = plt.Circle(node.get_position(), piece_diameter / 2, fill=False, color="orange")
                 ax.add_patch(circle)
             
-            # Plot the star and end points in different colors
+            # Plot the start and end points in different colors
             if node == self.start:
                 ax.plot(node.get_position()[0], node.get_position()[1], color="lightcoral", marker="o")
             elif node == self.goal:

@@ -94,7 +94,7 @@ class Graph:
 
         self.points = []
         self.point_circles = []
-        self.tangent_edges = [] # Store the tangent edges separately to allow of easy modification of the graph
+        self.tangent_edges = []  # Store the tangent edges separately to allow easy modification of the graph
 
         # Add the circles to the graph
         for circle in circles:
@@ -174,13 +174,13 @@ class Graph:
 
         neighbors = []
 
-        # Get the indicies of the edges that contain the node
-        node_indicies = np.where(self.np_edges == node)
+        # Get the indices of the edges that contain the node
+        node_indices = np.where(self.np_edges == node)
 
         # Get the neighbors
-        for i in range(len(node_indicies[0])):
-            node_row = node_indicies[0][i]
-            node_col = node_indicies[1][i]
+        for i in range(len(node_indices[0])):
+            node_row = node_indices[0][i]
+            node_col = node_indices[1][i]
             
             # If the node is the first node in the edge, the second node is the neighbor
             if node_col == 0:
@@ -458,6 +458,7 @@ class Graph:
 
         # Sort the nodes by circle
         nodes_by_circle = {}
+        # Make a dictionary where each circle is a key for a list of the nodes that are on that circle
         for node in self.nodes.values():
             circle = node.get_circle()
             if circle.get_r() == 0:
