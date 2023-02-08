@@ -109,6 +109,9 @@ class MoveManager():
         # Add the move to the start
         gcode += self.generate_linear_gcode(start_node)
 
+        # Turn on the electromagnet
+        gcode += "M106 S255\n"
+
         arc_start = None
         # Loop through the path
         for i in range(1, len(path)):
@@ -137,6 +140,9 @@ class MoveManager():
                     # If it is not, generate the linear gcode
                     gcode += "\n"
                     gcode += self.generate_linear_gcode(current_node)
+
+        # Turn off the electromagnet
+        gcode += "M106 S255\n"
 
         return gcode
 
