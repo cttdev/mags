@@ -280,7 +280,9 @@ class PhysicalBoard():
         """
         i, j = bcs
 
-        return self.square_indicies.index((i, j))
+        for key, value in self.square_indicies.items():
+            if value == (i, j):
+                return key
 
 if __name__ == "__main__":
     capture_positions = [

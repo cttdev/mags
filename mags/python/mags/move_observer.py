@@ -1,13 +1,15 @@
 from enum import Enum
 from threading import Event
 import threading
+import time
 import gpiozero
+from planning.board import PhysicalBoard
 import numpy as np
 
-OUTPUT_PINS = [1, 2, 3, 4, 5, 6, 7, 8]
-INPUT_PINS = [9, 10, 11, 12, 13, 14, 15, 16]
+OUTPUT_PINS = [22, 10, 9, 11, 7, 8, 25, 24]
+INPUT_PINS = reversed([5, 6, 13, 19, 26, 21, 20, 16])
 
-MOVE_TIME_THRESHOLD = 0.5 # Seconds
+MOVE_TIME_THRESHOLD = 2 # Seconds
 
 class MoveObserver:
     """
@@ -62,29 +64,11 @@ class MoveObserver:
             for j in range(len(self.input_pins)):
                 # Read the input pin of the row
                 if self.input_pins[j].value:
-                    self.binary_board[j, i] = 1 # Piece is present at column i, row j -> (j, i) in BCS
+                    self.binary_board[i, j] = 1 # Piece is present at column i, row j -> (j, i) in BCS
+                else:
+                    self.binary_board[i, j] = 0
 
             self.output_pins[i].off()
-
-    def get_binary_board(self):
-        """
-        Returns the binary board.
-
-        """
-        return self.binary_board
-
-    def get_binary_board_as_dict(self):
-        """
-        Returns the binary board as a dictionary.
-
-        """
-        binary_board_dict = {}
-
-        for i in range(8):
-            for j in range(8):
-                binary_board_dict["{}{}".format(i, j)] = self.binary_board[i, j]
-
-        return binary_board_dict
 
     def check_board_state(self, other_binary_board):
         """
@@ -118,8 +102,8 @@ class MoveObserver:
         move_end = np.argwhere(difference == 1)
 
         # Convert the move coordinates to CCS
-        move_start_ccs = self.board.bcs_2_ccs(move_start)
-        move_end_ccs = self.board.bcs_2_ccs(move_end)
+        move_start_ccs = self.board.bcs_2_ccs(move_start.tolist()[0])
+        move_end_ccs = self.board.bcs_2_ccs(move_end.tolist()[0])
 
         # Return the move
         return move_start_ccs + move_end_ccs
@@ -136,13 +120,16 @@ class MoveObserver:
         # Wait until a move is detected
         while True:
             self.sample_board()
+            time.sleep(0.01)
 
             # Check if the real board state is the same as the internally stored board
             if not self.check_board_state(stored_binary_board):
                 # If the board state is different, a move has started, so break out of the loop
                 previous_binary_board = self.binary_board
                 break
-                
+        
+        print("out")
+
         # Setup the timer threading
         time_out_condition = Event()
         time_out_timer = threading.Timer(MOVE_TIME_THRESHOLD, time_out_condition.set)  
@@ -154,6 +141,7 @@ class MoveObserver:
         # are the same for a specified settling time, we can assume that the move has ended
         while not time_out_condition.is_set():
             self.sample_board()
+            time.sleep(0.01)
 
             # Check if the real board state is the same as the previous board state
             if not self.check_board_state(previous_binary_board):
@@ -171,3 +159,25 @@ class MoveObserver:
     class ObservationStatus(Enum):
         BOARD_MATCH_ERROR = 1
         MOVE_MADE = 2
+
+if __name__ == "__main__":
+    capture_positions = [
+            np.array([400, 400]),
+            np.array([400, 400]),
+            np.array([400, 400]),
+            np.array([400, 400]),
+        ]
+
+    board = PhysicalBoard(395, 395, 22, 1, capture_positions=capture_positions)
+    board.reset("8/4p3/8/8/8/8/8/8")
+
+    print(board.get_binary_board())
+
+    move_observer = MoveObserver(board, lambda x: print(x))
+
+    move_observer.sample_board()
+
+    print(move_observer.binary_board)
+
+    while True:
+        print(move_observer.detect_move())
