@@ -1,5 +1,6 @@
 from collections import UserList
-import copy
+from itertools import compress
+from multiprocessing import Pool
 from matplotlib import pyplot as plt
 from matplotlib.patches import Arc
 import numpy as np
@@ -218,26 +219,16 @@ class Graph:
         Removes all edges that intersect any of the circles in the graph.
 
         """
-        # Clean surfing edges
-        new_surfing_edges = self.surfing_edges.copy()
-        for edge in self.surfing_edges:
-            if self.check_intersection(edge):
-                new_surfing_edges.remove(edge)
-        
-        self.surfing_edges = new_surfing_edges
-        
-        # Clean tangent edges
-        new_tangent_edges = self.tangent_edges.copy()
-        for edge in self.tangent_edges:
-            if self.check_intersection(edge):
-                new_tangent_edges.remove(edge)
-        
-        self.tangent_edges = new_tangent_edges
-        
+        with Pool() as pool: 
+            self.surfing_edges = list(compress(self.surfing_edges, pool.map(self.check_intersection, self.surfing_edges)))
+
+        with Pool() as pool: 
+            self.tangent_edges = list(compress(self.tangent_edges, pool.map(self.check_intersection, self.tangent_edges)))
+
         self.prepare_edge_optimization()
 
         # Remove nodes that are no longer connected to any other nodes
-        self.remove_unconnected_nodes() # TODO: Very slow
+        # self.remove_unconnected_nodes() # TODO: Very slow
 
     def remove_unconnected_nodes(self):
         """
