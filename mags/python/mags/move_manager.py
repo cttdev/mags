@@ -110,6 +110,7 @@ class MoveManager():
         gcode += self.generate_linear_gcode(start_node)
 
         # Turn on the electromagnet
+        gcode += "\n"
         gcode += "M106 S255\n"
 
         arc_start = None
@@ -142,7 +143,8 @@ class MoveManager():
                     gcode += self.generate_linear_gcode(current_node)
 
         # Turn off the electromagnet
-        gcode += "M106 S255\n"
+        gcode += "\n"
+        gcode += "M106 S0\n"
 
         return gcode
 
@@ -210,7 +212,7 @@ if __name__ == "__main__":
     astar = Astar()
     astar.clear()
 
-    stockfish = Stockfish(path="stockfish/stockfish_15.1_linux_x64_avx2/stockfish-ubuntu-20.04-x86-64-avx2")
+    stockfish = Stockfish(path="stockfish/stockfish")
 
     move_manager = MoveManager(board, astar, stockfish)
 
@@ -222,9 +224,9 @@ if __name__ == "__main__":
     # board.make_move("e2e4")
     board.reset("rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 1 2")
 
-    fig, ax = plt.subplots()
+    # fig, ax = plt.subplots()
 
-    capture_path, path = move_manager.respond(ax)
+    capture_path, path = move_manager.respond()
 
     # print(move_manager.trace_path(capture_path))
     print(move_manager.trace_path(path))
@@ -238,4 +240,4 @@ if __name__ == "__main__":
     # for i in range(10):
     #     path = move_manager.respond(axs[int(np.floor(i / 5)), i % 5])
 
-    plt.show()
+    # plt.show()
