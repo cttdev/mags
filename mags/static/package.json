@@ -26,6 +26,7 @@
     "bootstrap": "^5.2.3",
     "bootswatch": "^5.2.2",
     "chess.js": "^1.0.0-alpha.0",
+    "sass": "^1.58.0",
     "socket.io": "^4.5.4"
   }
 }

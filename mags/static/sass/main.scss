@@ -8,6 +8,18 @@ $mags-pink: #E85D75 !default;
 // Import Variables
 @import "../node_modules/bootswatch/dist/quartz/variables";
 
+// Bootstrap Variables and Functions
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+
+// Spacer for binary board
+$custom-spacers: (
+    6: $spacer * 0.1
+);
+
+// Merge the custom spacer map with the default spacer map
+$spacers: map-merge($spacers, $custom-spacers);
+
 // Bootstrap SCSS (Needs to be imported in between variables and bootswatch!)
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -16,3 +28,47 @@ $mags-pink: #E85D75 !default;
 
 // Bootswatch SCSS
 @import "../node_modules/bootswatch/dist/quartz/bootswatch";
+
+// Splashscreen SCSS
+#splashscreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background-color: rgba($color: #000000, $alpha: 0.5)
+}
+
+#splashcard {
+    width: 80%;
+    height: 80%;
+    background-color: rgba($color: #f4f4f4, $alpha: 1.0);
+    box-shadow: none;
+    background-image: none;
+    backdrop-filter: none;
+    --bs-card-border-radius: 2rem;
+}
+
+#splashtext {
+    font-size: 1000%;
+    font-weight: bold;
+    background: linear-gradient(90deg, #33b7e2, #5e62b0, #dc307c);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
+
+#board {
+    width: 40vw;
+    margin-left: 4px;
+}
+
+#play-card {
+    gap: 2.5vw;
+}
+
+.visualizer-node {
+    --bs-btn-padding-x: 0.4rem;
+    --bs-btn-padding-y: 0.4rem;
+    --bs-btn-border-width: 0;
+}

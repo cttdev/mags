@@ -30,6 +30,10 @@ socket.on("update", function(data) {
     board.position(data);
 });
 
+socket.on("update_binary_board", function(data) {
+    console.log(data);
+});
+
 // var source = new EventSource("/game_state");
 // source.onmessage = function(event) {
 //     var data = JSON.parse(event.data);
@@ -55,6 +59,34 @@ document.getElementById("endBtn").onclick = function() {
     socket.emit("end");
 }
 
+function update_binary_board(data) {
+    // Load the data json
+    var data = JSON.parse(data);
+
+    // Get all of the squares
+    var raw_squares = document.getElementsByClassName("visualizer-node");
+
+    // Loop through all of the squares
+    for (var i = 0; i < raw_squares.length; i++) {
+        // Get the square
+        var square = squares[i];
+
+        // Get the square's id
+        var squareId = square.id;
+
+        // Get the square's value
+        var squareValue = data[squareId.split("-")[1]];
+
+        print(squareValue)
+
+        // // Set the square's color
+        // if (squareValue == 1) {
+        //     square.style.backgroundColor = "black";
+        // } else {
+        //     square.style.backgroundColor = "white";
+        // }
+    }
+}
 
 // $('#startBtn').on("click", function() {
 //         board.start();

@@ -66,6 +66,26 @@ class MoveObserver:
 
             self.output_pins[i].off()
 
+    def get_binary_board(self):
+        """
+        Returns the binary board.
+
+        """
+        return self.binary_board
+
+    def get_binary_board_as_dict(self):
+        """
+        Returns the binary board as a dictionary.
+
+        """
+        binary_board_dict = {}
+
+        for i in range(8):
+            for j in range(8):
+                binary_board_dict["{}{}".format(i, j)] = self.binary_board[i, j]
+
+        return binary_board_dict
+
     def check_board_state(self, other_binary_board):
         """
         Checks if the other board state is the same as the internally stored board.
