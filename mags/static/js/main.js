@@ -31,7 +31,7 @@ socket.on("update", function(data) {
 });
 
 socket.on("update_binary_board", function(data) {
-    console.log(data);
+    update_binary_board(data);
 });
 
 // var source = new EventSource("/game_state");
@@ -69,7 +69,7 @@ function update_binary_board(data) {
     // Loop through all of the squares
     for (var i = 0; i < raw_squares.length; i++) {
         // Get the square
-        var square = squares[i];
+        var square = raw_squares[i];
 
         // Get the square's id
         var squareId = square.id;
@@ -77,14 +77,12 @@ function update_binary_board(data) {
         // Get the square's value
         var squareValue = data[squareId.split("-")[1]];
 
-        print(squareValue)
-
-        // // Set the square's color
-        // if (squareValue == 1) {
-        //     square.style.backgroundColor = "black";
-        // } else {
-        //     square.style.backgroundColor = "white";
-        // }
+        // Set the square's color
+        if (squareValue == 1) {
+            square.className = "btn btn-primary visualizer-node m-6";
+        } else {
+            square.className = "btn btn-secondary visualizer-node m-6";
+        }
     }
 }
 
