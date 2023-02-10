@@ -31,9 +31,13 @@ class MoveManager():
         # Get the current board state
         fen = self.board.get_fen()
 
+        print("Calling Stockfish!")
+
         # Get the best move UCI from stockfish
         self.stockfish.set_fen_position(fen)
         best_move = self.stockfish.get_best_move()
+
+        print("Stockfish Called!")
 
         # Get the start and end squares
         # Read the UCI string from the start to account for promotion
@@ -46,6 +50,8 @@ class MoveManager():
 
         # Generate the board map
         map = self.board.generate_map([start_square, end_square])
+
+        print("Map Generated Called!")
 
         # Plot the board
         if plotting_axs is not None:
@@ -60,6 +66,7 @@ class MoveManager():
 
         # Check if move is capture
         if self.board.check_capture(best_move):
+            print("Calling Astar For Capture!")
             # If the move is a capture, remove the piece from the board
             # Prepare the path planner
             map.clear_points()
@@ -77,6 +84,8 @@ class MoveManager():
                 self.astar.plot_path(plotting_axs, board.get_piece_diameter())
 
         # Plan the move path
+        print("Calling Astar!")
+
         map.clear_points()
         self.astar.set_graph(map)
 
@@ -84,6 +93,8 @@ class MoveManager():
         self.astar.set_goal(end_position)
 
         path = self.astar.calculate_path()
+
+        print("Astar Called!")
         
         # Make the move on the board
         self.board.make_move(best_move)
@@ -200,19 +211,19 @@ class MoveManager():
 
 if __name__ == "__main__":
     capture_positions = [
-        np.array([375, 350]),
-        np.array([375, 350]),
-        np.array([375, 350]),
-        np.array([375, 350]),
+        np.array([375, 200]),
+        np.array([375, 200]),
+        np.array([375, 200]),
+        np.array([375, 200]),
     ]
 
-    board = PhysicalBoard(400, 400, 23, 2, capture_positions=capture_positions)
+    board = PhysicalBoard(400, 400, 22, 1, capture_positions=capture_positions)
     board.reset()
 
     astar = Astar()
     astar.clear()
 
-    stockfish = Stockfish(path="stockfish/stockfish")
+    stockfish = Stockfish(path="stockfish/stockfish_15.1_linux_x64_avx2/stockfish-ubuntu-20.04-x86-64-avx2")
 
     move_manager = MoveManager(board, astar, stockfish)
 
@@ -222,14 +233,17 @@ if __name__ == "__main__":
     # klipper.check_klipper_connection()
 
     # board.make_move("e2e4")
-    board.reset("rnbqkbnr/ppp1pppp/8/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R b KQkq - 1 2")
+    # board.reset("rnbqkbnr/pppp1ppp/8/8/PP2p3/5N2/2PPPPPP/RNBQKB1R b KQkq - 0 3")
+    board.reset("rnbqkbnr/ppp1pppp/8/3p4/P7/5N2/1PPPPPPP/RNBQKB1R b KQkq - 0 2")
 
-    # fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
-    capture_path, path = move_manager.respond()
+    capture_path, path = move_manager.respond(ax)
 
     # print(move_manager.trace_path(capture_path))
     print(move_manager.trace_path(path))
+
+    plt.show()
     
 
     # klipper.send_gcode(move_manager.trace_path(capture_path))

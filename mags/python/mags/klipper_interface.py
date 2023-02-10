@@ -80,6 +80,56 @@ class Klipper():
         #                 self.moonraker_websocket.connect("ws://localhost:5000")
         #         self.throw_connection_status(Klipper.ConnectionStatus.CONNECTED)
 
+    def send_initialize(self):
+        # Check if connected to moonraker
+        if not self.is_connected():
+            self.throw_message_status(Klipper.MessageStatus.FAILURE)
+            return
+
+        # Send request to moonraker
+        self.moonraker_websocket.send(request_json("printer.gcode.script", params={"script": "SET_KINEMATIC_POSITION X=20 Y=25 Z=0"}))
+
+        # Get response from moonraker
+        while True:
+            try:
+                response = parse_json(self.moonraker_websocket.recv())
+            except KeyError:
+                print("KeyError")
+                continue
+
+            if isinstance(response, Ok):
+                self.throw_message_status(Klipper.MessageStatus.SUCCESS)
+                return
+            elif isinstance(response, Error):
+                self.throw_message_status(Klipper.MessageStatus.FAILURE)
+                print("Error Sending GCode: " + response.message)
+                return
+
+    def send_end(self):
+        # Check if connected to moonraker
+        if not self.is_connected():
+            self.throw_message_status(Klipper.MessageStatus.FAILURE)
+            return
+
+        # Send request to moonraker
+        self.moonraker_websocket.send(request_json("printer.gcode.script", params={"script": "M18"}))
+
+        # Get response from moonraker
+        while True:
+            try:
+                response = parse_json(self.moonraker_websocket.recv())
+            except KeyError:
+                print("KeyError")
+                continue
+
+            if isinstance(response, Ok):
+                self.throw_message_status(Klipper.MessageStatus.SUCCESS)
+                return
+            elif isinstance(response, Error):
+                self.throw_message_status(Klipper.MessageStatus.FAILURE)
+                print("Error Sending GCode: " + response.message)
+                return
+
     def send_gcode(self, gcode):
         # Check if connected to moonraker
         if not self.is_connected():

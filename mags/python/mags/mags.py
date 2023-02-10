@@ -1,4 +1,3 @@
-import json
 from threading import Thread
 from flask_socketio import SocketIO
 from flask import Flask, render_template
@@ -6,7 +5,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sassutils.wsgi import SassMiddleware
 
-import chess
 from stockfish import Stockfish
 from klipper_interface import Klipper
 from move_manager import MoveManager
@@ -32,13 +30,13 @@ app.wsgi_app = SassMiddleware(app.wsgi_app, {
 stockfish = Stockfish(path="stockfish/stockfish_15.1_linux_x64_avx2/stockfish-ubuntu-20.04-x86-64-avx2")
 
 capture_positions = [
-        np.array([400, 400]),
-        np.array([400, 400]),
-        np.array([400, 400]),
-        np.array([400, 400]),
+        np.array([375, 200]),
+        np.array([375, 200]),
+        np.array([375, 200]),
+        np.array([375, 200]),
     ]
 
-board = PhysicalBoard(395, 395, 22, 1, capture_positions=capture_positions)
+board = PhysicalBoard(400, 400, 22, 1, capture_positions=capture_positions)
 board.reset()
 
 astar = Astar()
@@ -46,29 +44,29 @@ astar.clear()
 
 move_manager = MoveManager(board, astar, stockfish)
 
-# move_observer = MoveObserver(board, lambda x: print(x))
+klipper = Klipper("10.29.43.219:7125", lambda x: print(x), lambda x: print(x))
 
-# klipper = Klipper("10.29.122.93:7125", lambda x: print(x), lambda x: print(x))
+klipper.connect()
+klipper.check_klipper_connection()
 
-# klipper.connect()
-# klipper.check_klipper_connection()
+# def update_binary_board_state():
+#     while True:
+#         socketio.sleep(0.1)
 
-def update_binary_board_state():
-    while True:
-        socketio.sleep(0.1)
+#         move_observer.sample_board()
 
-        # Get the binary board state
-        binary_board_state = move_observer.get_binary_board_as_dict()
+#         # Get the binary board state
+#         binary_board_state = move_observer.get_binary_board_as_dict()
 
-        # Send the binary board state to the client
-        socketio.emit("update_binary_board", json.dumps(binary_board_state))
+#         # Send the binary board state to the client
+#         socketio.emit("update_binary_board", json.dumps(binary_board_state))
 
-# Make a thread to update the board state
-thread = Thread(target=update_binary_board_state)
-thread.daemon = True
+# # Make a thread to update the board state
+# thread = Thread(target=update_binary_board_state)
+# thread.daemon = True
 
-# Start the thread
-thread.start()
+# # Start the thread
+# thread.start()
 
 @app.route("/")
 def index():
@@ -77,13 +75,19 @@ def index():
 @socketio.on("start")
 def start():
     print("Starting game!")
+
     board.reset()
+    # klipper.send_initialize()
+
     update_state()
 
 @socketio.on("end")
 def end():
     print("Ending game!")
+    
     board.clear()
+    # klipper.send_end()
+
     update_state()
 
 @socketio.on("move")
@@ -110,7 +114,7 @@ def update_state():
 
 
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app, host="0.0.0.0", debug=True, use_reloader=False)
 
     # from waitress import serve
     # serve(app, host="0.0.0.0", port=8080)
